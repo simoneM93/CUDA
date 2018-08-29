@@ -22,7 +22,7 @@ int main (int argc, char **argv)
 {
 	cudaError_t error;
 
-	int dim = 4;
+	int dim = 5;
 	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix, *hTraspMatrix, *dTraspMatrix;
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix;
