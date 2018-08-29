@@ -7,6 +7,7 @@
 #include <malloc.h>
 #include "DiagonalyDominantMatrix.cu"
 #include "InitMatrix.cu"
+#include "SumMatrix.cu"
 
 void check_cuda(cudaError_t err, const char *msg) {
  if (err != cudaSuccess) {
@@ -20,44 +21,60 @@ int main (int argc, char **argv)
 {
 	cudaError_t error;
 
-	int dim = 4096;
-	int *hMatrix, *dMatrix;
+	int dim = 4;
+	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix;
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix;
 
 	hMatrix = (int*)malloc(dim*dim*sizeof(int));
-	
+	hSumMatrix = (int*)malloc(dim*dim*sizeof(int));
 	hFlag = (bool*)malloc(dim*sizeof(bool));
 
 	error = cudaMalloc(&dMatrix, dim*dim*sizeof(int));
 	check_cuda(error, "Error");
+	
 	error = cudaMalloc(&dFlag, dim*sizeof(bool));
 	check_cuda(error, "error");
+	
+	error = cudaMalloc(&dSumMatrix, dim*dim*sizeof(int));
+	check_cuda(error, "SumMatrix");
 
-	initMatrix<<<dim, dim>>>(dim*dim, dMatrix);
+	initMatrix<<<dim, dim>>>(dim, dMatrix);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
 
-	printf("\n\n");
+	/*printf("\n\nMatrice Iniziale: ");
 	
-	/*for(int i = 0; i < dim*dim; ++i) 
-		printf("%d ", hMatrix[i]);*/
+	for(int i = 0; i < dim*dim; ++i) 
+		printf("%d ", hMatrix[i]);
 
-	printf("\n\n");
+	printf("\n\nMatrice Inizializzata!");*/
+
+	sumMatrix<<<1, dim>>>(dim, dMatrix, dMatrix, dSumMatrix);
+	error = cudaThreadSynchronize();
+	error = cudaMemcpy(hSumMatrix, dSumMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
+	error = cudaThreadSynchronize();	
+
+	/*printf("\n\nSumMatrix: ");
+
+	for(int i = 0; i < dim*dim; ++i) 
+		printf("%d ", hSumMatrix[i]);
+
+	printf("\n\n");*/
 
 	diagonalyDominantMatrix<<<dim, dim>>>(dim, dMatrix, dFlag);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaMemcpy(hFlag, dFlag, dim*sizeof(bool), cudaMemcpyDeviceToHost);
 
+	/*for(int i = 0; i < dim; ++i)
+		printf("Flag: %d\n", hFlag[i]);*/
+
 	for(int i = 0; i < dim; ++i)
 		isdiagonalyDominantMatrix &= hFlag[i];
 
-	if(!isdiagonalyDominantMatrix)
-		printf("La matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il metodo di Jacobi!\n");
-	else
-		printf("La matrice è Strettamente Diagonalmente Dominante!\n");
+	!isdiagonalyDominantMatrix ? printf("\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il metodo di Jacobi!\n") : printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n");
 	
-	printf("\nIsDiagonaly = %d\n", isdiagonalyDominantMatrix);
+	printf("\nisdiagonalyDominantMatrix = %d\n", isdiagonalyDominantMatrix);
 }
