@@ -39,6 +39,7 @@ int main (int argc, char **argv)
 	error = cudaMalloc(&dSumMatrix, dim*dim*sizeof(int));
 	check_cuda(error, "SumMatrix");
 
+	//Inizializzo la matrice
 	initMatrix<<<dim, dim>>>(dim, dMatrix);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
@@ -51,6 +52,7 @@ int main (int argc, char **argv)
 
 	printf("\n\nMatrice Inizializzata!");*/
 
+	//Effettuo la somma tra le matrici
 	sumMatrix<<<1, dim>>>(dim, dMatrix, dMatrix, dSumMatrix);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hSumMatrix, dSumMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
@@ -63,6 +65,7 @@ int main (int argc, char **argv)
 
 	printf("\n\n");*/
 
+	//Verifico che la matrice sia Strettamente Diagonalmente Dominante
 	diagonalyDominantMatrix<<<dim, dim>>>(dim, dMatrix, dFlag);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
