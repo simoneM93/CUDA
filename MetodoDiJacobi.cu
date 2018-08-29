@@ -5,8 +5,8 @@
 #include <cuda_runtime_api.h>
 #include "device_launch_parameters.h"
 #include <malloc.h>
-
-using namespace std;
+#include "DiagonalyDominantMatrix.cu"
+#include "InitMatrix.cu"
 
 void check_cuda(cudaError_t err, const char *msg) {
  if (err != cudaSuccess) {
@@ -14,48 +14,6 @@ void check_cuda(cudaError_t err, const char *msg) {
    err, cudaGetErrorString(err));
   exit(0);
  }
-}
-
-__device__ int absV(int element)
-{
-	return (element < 0 ? -element : element);
-}
-
-__global__ void diagonalyDominantMatrix(int dim, int* matrix, bool* flag)
-{
-
-	int index = blockIdx.x * blockDim.x + threadIdx.x;
-	
-	if(index > dim - 1) 
-		return;
-	
-	int diagonalElements = absV(matrix[index * dim + index]);
-
-	int sum = 0;
-	int offSet = index * dim;
-
-	for(int i = 0; i < dim; ++i){
-		if(i != index)
-			sum += absV(matrix[i + offSet]);
-	}
-
-	//printf("sum = %d, diagonalElements = %d\n", sum, diagonalElements);
-
-	if(sum < diagonalElements)
-		flag[index] = true;
-	else
-		flag[index] = false;
-		
-}
-
-__global__ void initMatrix(int dim, int* matrix)
-{
-	int index = blockIdx.x * blockDim.x + threadIdx.x;
-
-	if(index > dim)
-		return;
-
-	matrix[index] = index;
 }
 
 int main (int argc, char **argv)
