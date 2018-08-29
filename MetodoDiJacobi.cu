@@ -7,6 +7,7 @@
 #include <malloc.h>
 #include "DiagonalyDominantMatrix.cu"
 #include "InitMatrix.cu"
+#include "InitVector.cu"
 #include "SumMatrix.cu"
 #include "TransposedMatrix.cu"
 #include "MatrixDivision.cu"
@@ -24,7 +25,8 @@ int main (int argc, char **argv)
 	cudaError_t error;
 
 	int dim = 4;
-	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix, *hTraspMatrix, *dTraspMatrix, *hDiagonalMatrix, *dDiagonalMatrix, *hTriangularMatrix, *dTriangularMatrix;
+	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix, *hTraspMatrix, *dTraspMatrix, *hDiagonalMatrix, *dDiagonalMatrix, *hTriangularMatrix, *dTriangularMatrix,
+	*hVector, *dVector;
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix;
 
@@ -34,6 +36,8 @@ int main (int argc, char **argv)
 	hTraspMatrix = (int*)malloc(dim*dim*sizeof(int));
 	hDiagonalMatrix = (int*)malloc(dim*dim*sizeof(int));
 	hTriangularMatrix = (int*)malloc(dim*dim*sizeof(int));
+
+	hVector = (int*)malloc(dim*sizeof(int));
 
 	error = cudaMalloc(&dMatrix, dim*dim*sizeof(int));
 	check_cuda(error, "Error");
@@ -52,6 +56,9 @@ int main (int argc, char **argv)
 	
 	error = cudaMalloc(&dSumMatrix, dim*dim*sizeof(int));
 	check_cuda(error, "SumMatrix");
+
+	error = cudaMalloc(&dVector, dim*sizeof(int));
+	check_cuda(error, "Vector");
 
 	//Inizializzo la matrice
 	initMatrix<<<dim, dim>>>(dim, dMatrix);
@@ -118,4 +125,12 @@ int main (int argc, char **argv)
 	printf("\n\nTriangolare: ");
 	for(int i = 0; i < dim*dim; ++i) 
 		printf("%d ", hTriangularMatrix[i]);
+
+	initVector<<<dim, dim>>>(dim, dVector);
+	error = cudaThreadSynchronize();
+	error = cudaMemcpy(hVector, dVector, dim*sizeof(int), cudaMemcpyDeviceToHost);
+
+	printf("\n\nVector: ");
+	for(int i = 0; i < dim; ++i) 
+		printf("%d ", hVector[i]);
 }
