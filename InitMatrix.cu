@@ -7,5 +7,5 @@ __global__ void initMatrix(int dim, int* matrix)
 	if(index > dimMatrix)
 		return;
 
-	matrix[index] = index;
+	matrix[index] = index + 1;
 }
