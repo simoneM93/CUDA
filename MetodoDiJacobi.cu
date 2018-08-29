@@ -8,6 +8,7 @@
 #include "DiagonalyDominantMatrix.cu"
 #include "InitMatrix.cu"
 #include "SumMatrix.cu"
+#include "TransposedMatrix.cu"
 
 void check_cuda(cudaError_t err, const char *msg) {
  if (err != cudaSuccess) {
@@ -22,15 +23,19 @@ int main (int argc, char **argv)
 	cudaError_t error;
 
 	int dim = 4;
-	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix;
+	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix, *hTraspMatrix, *dTraspMatrix;
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix;
 
 	hMatrix = (int*)malloc(dim*dim*sizeof(int));
 	hSumMatrix = (int*)malloc(dim*dim*sizeof(int));
 	hFlag = (bool*)malloc(dim*sizeof(bool));
+	hTraspMatrix = (int*)malloc(dim*dim*sizeof(int));
 
 	error = cudaMalloc(&dMatrix, dim*dim*sizeof(int));
+	check_cuda(error, "Error");
+
+	error = cudaMalloc(&dTraspMatrix, dim*dim*sizeof(int));
 	check_cuda(error, "Error");
 	
 	error = cudaMalloc(&dFlag, dim*sizeof(bool));
@@ -80,4 +85,13 @@ int main (int argc, char **argv)
 	!isdiagonalyDominantMatrix ? printf("\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il metodo di Jacobi!\n") : printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n");
 	
 	printf("\nisdiagonalyDominantMatrix = %d\n", isdiagonalyDominantMatrix);
+
+	transposedMatrix<<<1, dim>>>(dim, dMatrix, dTraspMatrix);
+	error = cudaThreadSynchronize();
+	error = cudaMemcpy(hTraspMatrix, dTraspMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
+	error = cudaThreadSynchronize();
+
+	printf("\nTrasposta: ");
+	for(int i = 0; i < dim*dim; ++i) 
+		printf("%d ", hTraspMatrix[i]);
 }
