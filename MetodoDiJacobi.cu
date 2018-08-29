@@ -60,77 +60,41 @@ int main (int argc, char **argv)
 	error = cudaMalloc(&dVector, dim*sizeof(int));
 	check_cuda(error, "Vector");
 
-	//Inizializzo la matrice
-	initMatrix<<<dim, dim>>>(dim, dMatrix);
+
+	initMatrix<<<1, dim>>>(dim, dMatrix);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
 
-	/*printf("\n\nMatrice Iniziale: ");
-	
-	for(int i = 0; i < dim*dim; ++i) 
-		printf("%d ", hMatrix[i]);
-
-	printf("\n\nMatrice Inizializzata!");*/
-
-	//Effettuo la somma tra le matrici
 	sumMatrix<<<1, dim>>>(dim, dMatrix, dMatrix, dSumMatrix);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hSumMatrix, dSumMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();	
 
-	/*printf("\n\nSumMatrix: ");
-
-	for(int i = 0; i < dim*dim; ++i) 
-		printf("%d ", hSumMatrix[i]);
-
-	printf("\n\n");*/
-
-	//Verifico che la matrice sia Strettamente Diagonalmente Dominante
 	diagonalyDominantMatrix<<<dim, dim>>>(dim, dMatrix, dFlag);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaMemcpy(hFlag, dFlag, dim*sizeof(bool), cudaMemcpyDeviceToHost);
 
-	/*for(int i = 0; i < dim; ++i)
-		printf("Flag: %d\n", hFlag[i]);*/
-
 	for(int i = 0; i < dim; ++i)
 		isdiagonalyDominantMatrix &= hFlag[i];
 
 	!isdiagonalyDominantMatrix ? printf("\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il metodo di Jacobi!\n") : printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n");
-	
-	//printf("\nisdiagonalyDominantMatrix = %d\n", isdiagonalyDominantMatrix);
 
 	transposedMatrix<<<1, dim>>>(dim, dMatrix, dTraspMatrix);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hTraspMatrix, dTraspMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
 
-	printf("\nTrasposta: ");
-	for(int i = 0; i < dim*dim; ++i) 
-		printf("%d ", hTraspMatrix[i]);
-
 	matrixDivision<<<dim, 1>>>(dim, dMatrix, dDiagonalMatrix, dTriangularMatrix);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
+	
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
 
-	printf("\n\nDiagonale: ");
-	for(int i = 0; i < dim*dim; ++i) 
-		printf("%d ", hDiagonalMatrix[i]);
-
-	printf("\n\nTriangolare: ");
-	for(int i = 0; i < dim*dim; ++i) 
-		printf("%d ", hTriangularMatrix[i]);
-
-	initVector<<<dim, dim>>>(dim, dVector);
+	initVector<<<1, dim>>>(dim, dVector);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hVector, dVector, dim*sizeof(int), cudaMemcpyDeviceToHost);
-
-	printf("\n\nVector: ");
-	for(int i = 0; i < dim; ++i) 
-		printf("%d ", hVector[i]);
 }
