@@ -23,6 +23,11 @@ void check_cuda(cudaError_t err, const char *msg) {
 int main (int argc, char **argv)
 {
 	cudaError_t error;
+	cudaEvent_t gpu_start, gpu_stop;
+    float gpu_runtime;
+
+    cudaEventCreate(&gpu_start);
+    cudaEventCreate(&gpu_stop);
 
 	int dim = 4;
 	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix, *hTraspMatrix, *dTraspMatrix, *hDiagonalMatrix, *dDiagonalMatrix, *hTriangularMatrix, *dTriangularMatrix,
@@ -34,7 +39,7 @@ int main (int argc, char **argv)
 	hSumMatrix = (int*)malloc(dim*dim*sizeof(int));
 	hFlag = (bool*)malloc(dim*sizeof(bool));
 	hTraspMatrix = (int*)malloc(dim*dim*sizeof(int));
-	hDiagonalMatrix = (int*)malloc(dim*dim*sizeof(int));
+	hDiagonalMatrix = (int*)malloc(dim*sizeof(int));
 	hTriangularMatrix = (int*)malloc(dim*dim*sizeof(int));
 
 	hVector = (int*)malloc(dim*sizeof(int));
@@ -42,7 +47,7 @@ int main (int argc, char **argv)
 	error = cudaMalloc(&dMatrix, dim*dim*sizeof(int));
 	check_cuda(error, "Error");
 
-	error = cudaMalloc(&dDiagonalMatrix, dim*dim*sizeof(int));
+	error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(int));
 	check_cuda(error, "Error");
 
 	error = cudaMalloc(&dTriangularMatrix, dim*dim*sizeof(int));
@@ -61,7 +66,7 @@ int main (int argc, char **argv)
 	check_cuda(error, "Vector");
 
 
-	initMatrix<<<1, dim>>>(dim, dMatrix);
+	initMatrix<<<dim, dim>>>(dim, dMatrix);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
@@ -71,7 +76,12 @@ int main (int argc, char **argv)
 	error = cudaMemcpy(hSumMatrix, dSumMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();	
 
+	cudaEventRecord(gpu_start, 0);
 	diagonalyDominantMatrix<<<dim, dim>>>(dim, dMatrix, dFlag);
+	cudaEventRecord(gpu_stop, 0);
+    cudaEventSynchronize(gpu_stop);
+    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+    printf("CUDA runtime: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaMemcpy(hFlag, dFlag, dim*sizeof(bool), cudaMemcpyDeviceToHost);
@@ -86,15 +96,35 @@ int main (int argc, char **argv)
 	error = cudaMemcpy(hTraspMatrix, dTraspMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
 
+	cudaEventRecord(gpu_start, 0);
 	matrixDivision<<<dim, 1>>>(dim, dMatrix, dDiagonalMatrix, dTriangularMatrix);
+	cudaEventRecord(gpu_stop, 0);
+    cudaEventSynchronize(gpu_stop);
+    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+    printf("CUDA runtime: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	
 	error = cudaThreadSynchronize();
-	error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
+	error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
 
 	initVector<<<1, dim>>>(dim, dVector);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hVector, dVector, dim*sizeof(int), cudaMemcpyDeviceToHost);
+
+	printf("\nMatrice Iniziale: ");
+
+	for(int i = 0; i < dim*dim; ++i) 
+		printf("%d ", hMatrix[i] );
+
+	printf("\n\nDiagonale: ");
+
+	for(int i = 0; i < dim; ++i) 
+		printf("%d ", hDiagonalMatrix[i] );
+
+	printf("\n\nTriangolare: ");
+
+	for(int i = 0; i < dim*dim; ++i) 
+		printf("%d ", hTriangularMatrix[i] );
 }
