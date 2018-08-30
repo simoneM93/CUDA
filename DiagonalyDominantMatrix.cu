@@ -18,10 +18,5 @@ __global__ void diagonalyDominantMatrix(int dim, int* matrix, bool* flag)
 			sum += absV(matrix[i + offSet]);
 	}
 
-	//printf("sum = %d, diagonalElements = %d\n", sum, diagonalElements);
-
-	if(sum < diagonalElements)
-		flag[index] = true;
-	else
-		flag[index] = false;		
+	flag[index] = sum < diagonalElements ? true : false;		
 }
