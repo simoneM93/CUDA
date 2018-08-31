@@ -14,14 +14,9 @@
 #include "MoltiplicationMatrixVector.cu"
 #include "SumVectorVector.cu"
 #include "NormaDue.cu"
+#include "Check_Cuda.cu"
 
-void check_cuda(cudaError_t err, const char *msg) {
- if (err != cudaSuccess) {
-  fprintf(stderr, "%s -- %d: %s\n", msg,
-   err, cudaGetErrorString(err));
-  exit(0);
- }
-}
+
 
 int main (int argc, char **argv)
 {
@@ -178,29 +173,4 @@ int main (int argc, char **argv)
 	tot_gpu_runtime += gpu_runtime;
 
 	printf("CUDA tot runtime: %gms\n", tot_gpu_runtime);
-
-	/*printf("\nMatrice Iniziale: ");
-
-	for(int i = 0; i < dim*dim; ++i) 
-		printf("%d ", hMatrix[i] );
-
-	printf("\n\nDiagonale: ");
-
-	for(int i = 0; i < dim; ++i) 
-		printf("%d ", hDiagonalMatrix[i] );
-
-	printf("\n\nTriangolare: ");
-
-	for(int i = 0; i < dim*dim; ++i) 
-		printf("%d ", hTriangularMatrix[i] );
-
-	printf("\n\nResult: ");
-
-	for(int i = 0; i < dim; ++i) 
-		printf("%d ", hResult[i] );
-
-	printf("\n\nSumVector: ");
-
-	for(int i = 0; i < dim; ++i) 
-		printf("%d ", hVectorResult[i] );*/
 }
