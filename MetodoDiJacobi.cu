@@ -12,6 +12,8 @@
 #include "TransposedMatrix.cu"
 #include "MatrixDivision.cu"
 #include "MoltiplicationMatrixVector.cu"
+#include "SumVectorVector.cu"
+#include "NormaDue.cu"
 
 void check_cuda(cudaError_t err, const char *msg) {
  if (err != cudaSuccess) {
@@ -31,9 +33,9 @@ int main (int argc, char **argv)
     cudaEventCreate(&gpu_start);
     cudaEventCreate(&gpu_stop);
 
-	int dim = 4;
+	int dim = 1024;
 	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix, *hTraspMatrix, *dTraspMatrix, *hDiagonalMatrix, *dDiagonalMatrix, *hTriangularMatrix, *dTriangularMatrix,
-	*hVector, *dVector, *hResult, *dResult;
+	*hVector, *dVector, *hResult, *dResult, *hVectorResult, *dVectorResult;
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix;
 
@@ -44,13 +46,16 @@ int main (int argc, char **argv)
 	hDiagonalMatrix = (int*)malloc(dim*sizeof(int));
 	hTriangularMatrix = (int*)malloc(dim*dim*sizeof(int));
 	hResult = (int*)malloc(dim*sizeof(int));
-
+	hVectorResult = (int*)malloc(dim*sizeof(int));
 	hVector = (int*)malloc(dim*sizeof(int));
 
 	error = cudaMalloc(&dMatrix, dim*dim*sizeof(int));
 	check_cuda(error, "Error");
 
 	error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(int));
+	check_cuda(error, "Error");
+
+	error = cudaMalloc(&dVectorResult, dim*sizeof(int));
 	check_cuda(error, "Error");
 
 	error = cudaMalloc(&dResult, dim*sizeof(int));
@@ -161,9 +166,20 @@ int main (int argc, char **argv)
 
 	tot_gpu_runtime += gpu_runtime;
 
+	cudaEventRecord(gpu_start, 0);
+	sumVectorVector<<<dim, 1>>>(dim, dDiagonalMatrix, dDiagonalMatrix, dVectorResult);
+	cudaEventRecord(gpu_stop, 0);
+    cudaEventSynchronize(gpu_stop);
+    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+    printf("CUDA runtime SumVectorVector: %gms\n", gpu_runtime);
+    error = cudaThreadSynchronize();
+	error = cudaMemcpy(hVectorResult, dVectorResult, dim*sizeof(int), cudaMemcpyDeviceToHost);
+
+	tot_gpu_runtime += gpu_runtime;
+
 	printf("CUDA tot runtime: %gms\n", tot_gpu_runtime);
 
-	printf("\nMatrice Iniziale: ");
+	/*printf("\nMatrice Iniziale: ");
 
 	for(int i = 0; i < dim*dim; ++i) 
 		printf("%d ", hMatrix[i] );
@@ -182,4 +198,9 @@ int main (int argc, char **argv)
 
 	for(int i = 0; i < dim; ++i) 
 		printf("%d ", hResult[i] );
+
+	printf("\n\nSumVector: ");
+
+	for(int i = 0; i < dim; ++i) 
+		printf("%d ", hVectorResult[i] );*/
 }
