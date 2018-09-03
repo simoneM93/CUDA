@@ -1,22 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "cuda_runtime.h"
-#include <cuda_runtime_api.h>
-#include "device_launch_parameters.h"
 #include <malloc.h>
-#include "DiagonalyDominantMatrix.cu"
-#include "InitMatrix.cu"
-#include "InitVector.cu"
-#include "SumMatrix.cu"
-#include "TransposedMatrix.cu"
-#include "MatrixDivision.cu"
-#include "MoltiplicationMatrixVector.cu"
-#include "SumVectorVector.cu"
-#include "NormaDue.cu"
-#include "Check_Cuda.cu"
+#include <cuda_runtime_api.h>
 
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+#include "cuda_fp16.h"
 
+//Metodi Implementati Per L'Esecuzione Del Metodo Di Jacobi
+#include "DiagonalyDominantMatrix.cu" //Serve a controllare se la matrice è Strettamente Diagonalmente Dominante
+#include "InitMatrix.cu" //Inizializza la matrice
+#include "InitVector.cu" //Inizializza il vettore
+#include "SumMatrix.cu" //Esegue la somma tra matrici
+#include "TransposedMatrix.cu" //Calcola la trasposta di una matrice
+#include "MatrixDivision.cu" //Divide la matrice in Matrice Diagonale e Matrice Triangolare Superiore e Inferiore
+#include "MoltiplicationMatrixVector.cu" //Esegue la moltiplicazione tra matrice e vettore
+#include "SumVectorVector.cu" //Esegue la somma tra due vettori
+#include "NormaDue.cu" //Calcola la Norma Due di un vettore
+#include "Check_Cuda.cu" //Errori
 
 int main (int argc, char **argv)
 {
@@ -28,9 +30,9 @@ int main (int argc, char **argv)
     cudaEventCreate(&gpu_start);
     cudaEventCreate(&gpu_stop);
 
-	int dim = 1024;
+	int dim = 4;
 	int *hMatrix, *dMatrix, *hSumMatrix, *dSumMatrix, *hTraspMatrix, *dTraspMatrix, *hDiagonalMatrix, *dDiagonalMatrix, *hTriangularMatrix, *dTriangularMatrix,
-	*hVector, *dVector, *hResult, *dResult, *hVectorResult, *dVectorResult;
+	*hVector, *dVector, *hResult, *dResult, *hVectorResult, *dVectorResult, *hNorma, *dNorma;
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix;
 
@@ -43,8 +45,12 @@ int main (int argc, char **argv)
 	hResult = (int*)malloc(dim*sizeof(int));
 	hVectorResult = (int*)malloc(dim*sizeof(int));
 	hVector = (int*)malloc(dim*sizeof(int));
+	hNorma = (int*)malloc(dim*sizeof(int));
 
 	error = cudaMalloc(&dMatrix, dim*dim*sizeof(int));
+	check_cuda(error, "Error");
+
+	error = cudaMalloc(&dNorma, dim*sizeof(int));
 	check_cuda(error, "Error");
 
 	error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(int));
@@ -72,6 +78,7 @@ int main (int argc, char **argv)
 	check_cuda(error, "Vector");
 
 	cudaEventRecord(gpu_start, 0);
+	//initMatrixSDD<<<dim, dim>>>(dim, dMatrix);
 	initMatrix<<<dim, dim>>>(dim, dMatrix);
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
@@ -110,7 +117,8 @@ int main (int argc, char **argv)
 	for(int i = 0; i < dim; ++i)
 		isdiagonalyDominantMatrix &= hFlag[i];
 
-	!isdiagonalyDominantMatrix ? printf("\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il metodo di Jacobi!\n") : printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n");
+	!isdiagonalyDominantMatrix ? printf("\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il metodo di Jacobi!\n\n") : printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n\n");
+	
 
 	cudaEventRecord(gpu_start, 0);
 	transposedMatrix<<<1, dim>>>(dim, dMatrix, dTraspMatrix);
@@ -172,5 +180,33 @@ int main (int argc, char **argv)
 
 	tot_gpu_runtime += gpu_runtime;
 
-	printf("CUDA tot runtime: %gms\n", tot_gpu_runtime);
+	cudaEventRecord(gpu_start, 0);
+	normaDue<<<1, dim>>>(dDiagonalMatrix, dNorma);
+	cudaEventRecord(gpu_stop, 0);
+    cudaEventSynchronize(gpu_stop);
+    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+    printf("CUDA runtime NormaDue: %gms\n", gpu_runtime);
+    error = cudaThreadSynchronize();
+	error = cudaMemcpy(hNorma, dNorma, dim*sizeof(int), cudaMemcpyDeviceToHost);
+
+	for(int i = 0; i < dim; ++i)
+		printf("%d ", hDiagonalMatrix[i]);
+
+	int normaSum = 0;
+
+	for(int i = 0; i < dim; ++i)
+		normaSum += hNorma[i];
+
+	cudaEventRecord(gpu_start, 0);
+	double radiceNorma = sqrt(normaSum);
+	cudaEventRecord(gpu_stop, 0);
+    cudaEventSynchronize(gpu_stop);
+    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+    printf("\nCUDA runtime RadiceNorma: %gms\n", gpu_runtime);
+
+	printf("\nNorma: %d, RadiceNorma: %f\n", normaSum, radiceNorma);
+
+	tot_gpu_runtime += gpu_runtime;
+
+	printf("\nCUDA tot runtime: %gms\n", tot_gpu_runtime);
 }
