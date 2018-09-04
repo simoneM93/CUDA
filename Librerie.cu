@@ -17,5 +17,6 @@
 #include "MatrixDivision.cu" //Divide la matrice in Matrice Diagonale e Matrice Triangolare Superiore e Inferiore
 #include "MoltiplicationMatrixVector.cu" //Esegue la moltiplicazione tra matrice e vettore
 #include "SumVectorVector.cu" //Esegue la somma tra due vettori
+#include "DiffVectorVector.cu1" //Esegue la differenza tra due vettori
 #include "NormaDue.cu" //Calcola la Norma Due di un vettore
 #include "Check_Cuda.cu" //Errori
