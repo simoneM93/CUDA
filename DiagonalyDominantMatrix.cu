@@ -17,6 +17,6 @@ __global__ void diagonalyDominantMatrix(int dim, int* matrix, bool* flag)
 		if(i != index)
 			sum += absV(matrix[i + offSet]);
 	}
-
+	
 	flag[index] = sum < diagonalElements ? true : false;		
 }
