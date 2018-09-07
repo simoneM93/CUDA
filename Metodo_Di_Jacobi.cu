@@ -17,22 +17,22 @@ int main(int argc, char **argv)
     cudaEventCreate(&gpu_stop);
 
     //int *hNorma, *dNorma;
-    int *hMatrix, *dMatrix;
-    int *hVector, *dVector;
-    int *hVectorB, *dVectorB;
-	int *hMoltiplicationResult, *dMoltiplicationResult;
+    type *hMatrix, *dMatrix;
+    type *hVector, *dVector;
+    type *hVectorB, *dVectorB;
+	type *hMoltiplicationResult, *dMoltiplicationResult;
     //int *hSumMatrix, *dSumMatrix;    	
 	//int *hTraspMatrix, *dTraspMatrix;
-    int *hSumVectorResult, *dSumVectorResult;
-    int *hDiagonalMatrix, *dDiagonalMatrix;
-    int *hTriangularMatrix, *dTriangularMatrix;
-    int *hMoltiplicationVector, *dMoltiplicationVector;
+    type *hSumVectorResult, *dSumVectorResult;
+    type *hDiagonalMatrix, *dDiagonalMatrix;
+    type *hTriangularMatrix, *dTriangularMatrix;
+    type *hMoltiplicationVector, *dMoltiplicationVector;
 
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix = true;
 
-	hMatrix = (int*)malloc(dim*dim*sizeof(int));
-	error = cudaMalloc(&dMatrix, dim*dim*sizeof(int));
+	hMatrix = (type*)malloc(dim*dim*sizeof(type));
+	error = cudaMalloc(&dMatrix, dim*dim*sizeof(type));
 	check_cuda(error, "Matrix");
 
 	//Inizializzo la Matrice
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
     printf("\nCUDA runtime InitMatrix: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
-	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
+	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(type), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
 
 	hFlag = (bool*)malloc(dim*sizeof(bool));
@@ -76,33 +76,33 @@ int main(int argc, char **argv)
 	{
 		printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n\n");
 
-		hDiagonalMatrix = (int*)malloc(dim*sizeof(int));
-		hTriangularMatrix = (int*)malloc(dim*dim*sizeof(int));
-		hVector = (int*)malloc(dim*sizeof(int));
-		hVectorB = (int*)malloc(dim*sizeof(int));
-		hMoltiplicationResult = (int*)malloc(dim*sizeof(int));
-		hSumVectorResult = (int*)malloc(dim*sizeof(int));
-		hMoltiplicationVector = (int*)malloc(dim*sizeof(int));
+		hDiagonalMatrix = (type*)malloc(dim*sizeof(type));
+		hTriangularMatrix = (type*)malloc(dim*dim*sizeof(type));
+		hVector = (type*)malloc(dim*sizeof(type));
+		hVectorB = (type*)malloc(dim*sizeof(type));
+		hMoltiplicationResult = (type*)malloc(dim*sizeof(type));
+		hSumVectorResult = (type*)malloc(dim*sizeof(type));
+		hMoltiplicationVector = (type*)malloc(dim*sizeof(type));
 
-		error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(int));
+		error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(type));
 		check_cuda(error, "Diagonal");
 
-		error = cudaMalloc(&dTriangularMatrix, dim*dim*sizeof(int));
+		error = cudaMalloc(&dTriangularMatrix, dim*dim*sizeof(type));
 		check_cuda(error, "Triangular");
 
-		error = cudaMalloc(&dVector, dim*sizeof(int));
+		error = cudaMalloc(&dVector, dim*sizeof(type));
 		check_cuda(error, "Vector");
 
-		error = cudaMalloc(&dVectorB, dim*sizeof(int));
+		error = cudaMalloc(&dVectorB, dim*sizeof(type));
 		check_cuda(error, "VectorB");
 
-		error = cudaMalloc(&dMoltiplicationResult, dim*sizeof(int));
+		error = cudaMalloc(&dMoltiplicationResult, dim*sizeof(type));
 		check_cuda(error, "MoltiplicazionResult");
 
-		error = cudaMalloc(&dSumVectorResult, dim*sizeof(int));
+		error = cudaMalloc(&dSumVectorResult, dim*sizeof(type));
 		check_cuda(error, "VectorB");
 
-		error = cudaMalloc(&dMoltiplicationVector, dim*sizeof(int));
+		error = cudaMalloc(&dMoltiplicationVector, dim*sizeof(type));
 		check_cuda(error, "MoltiplicationVector");
 
 
@@ -114,8 +114,8 @@ int main(int argc, char **argv)
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    printf("CUDA runtime MatrixDivision: %gms\n", gpu_runtime);
 		error = cudaThreadSynchronize();
-		error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
-		error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*sizeof(int), cudaMemcpyDeviceToHost);		
+		error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(type), cudaMemcpyDeviceToHost);
+		error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*sizeof(type), cudaMemcpyDeviceToHost);		
 
 		//Inizializzo Il primo Vettore X al passo 0
 		cudaEventRecord(gpu_start, 0);
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    printf("CUDA runtime InitVector: %gms\n", gpu_runtime);
 		error = cudaThreadSynchronize();
-		error = cudaMemcpy(hVector, dVector, dim*sizeof(int), cudaMemcpyDeviceToHost);		
+		error = cudaMemcpy(hVector, dVector, dim*sizeof(type), cudaMemcpyDeviceToHost);		
 
 		//Inizializzo il Vettore B
 		cudaEventRecord(gpu_start, 0);
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    printf("CUDA runtime InitVector: %gms\n", gpu_runtime);
 		error = cudaThreadSynchronize();
-		error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(int), cudaMemcpyDeviceToHost);	
+		error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(type), cudaMemcpyDeviceToHost);	
 		
 		int MaxIteraton;
 		scanf("%d", &MaxIteraton);
@@ -163,7 +163,12 @@ int main(int argc, char **argv)
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 		    printf("CUDA runtime MoltiplicationMatrixVector: %gms\n", gpu_runtime);
 		    error = cudaThreadSynchronize();
-			error = cudaMemcpy(hMoltiplicationResult, dMoltiplicationResult, dim*sizeof(int), cudaMemcpyDeviceToHost);
+			error = cudaMemcpy(hMoltiplicationResult, dMoltiplicationResult, dim*sizeof(type), cudaMemcpyDeviceToHost);
+
+			printf("\nMoltiplicationMatrixVector:\n");
+			for(int j = 0; j < dim; j++)
+				printf("%d ", hMoltiplicationResult[j]);
+			printf("\n\n");
 
 			//Sommo il risultato della precedente moltiplicazione con il vettore B
 			cudaEventRecord(gpu_start, 0);
@@ -173,7 +178,12 @@ int main(int argc, char **argv)
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 		    printf("CUDA runtime SumVectorVector: %gms\n", gpu_runtime);
 		    error = cudaThreadSynchronize();
-			error = cudaMemcpy(hSumVectorResult, dSumVectorResult, dim*sizeof(int), cudaMemcpyDeviceToHost);
+			error = cudaMemcpy(hSumVectorResult, dSumVectorResult, dim*sizeof(type), cudaMemcpyDeviceToHost);
+
+			printf("\nSumVectorVector:\n");
+			for(int j = 0; j < dim; j++)
+				printf("%d ", hSumVectorResult[j]);
+			printf("\n\n");
 						
 			//Moltiplico il risultato della precedente somma per il la matrice Diagonale(Trattata come vettore)
 			cudaEventRecord(gpu_start, 0);
@@ -183,7 +193,7 @@ int main(int argc, char **argv)
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 		    printf("CUDA runtime MoltiplicationVectorVector: %gms\n", gpu_runtime);
 		    error = cudaThreadSynchronize();
-			error = cudaMemcpy(hVector, dVector, dim*sizeof(int), cudaMemcpyDeviceToHost);
+			error = cudaMemcpy(hVector, dVector, dim*sizeof(type), cudaMemcpyDeviceToHost);
 
 			printf("\nMoltiplicationVector:\n");
 			for(int j = 0; j < dim; j++)
