@@ -1,4 +1,6 @@
-__global__ void transposedMatrix(int dim, int* matrix, int* resultMatrix)
+#include "Type.cu"
+
+__global__ void transposedMatrix(int dim, T* matrix, T* resultMatrix)
 {
 	int index = blockIdx.x * dim + threadIdx.x;
 

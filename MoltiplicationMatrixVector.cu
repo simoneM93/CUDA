@@ -1,4 +1,6 @@
-__global__ void moltiplicationMatrixVector(int dim, int* matrix, int* vector, int* result)
+#include "Type.cu"
+
+__global__ void moltiplicationMatrixVector(int dim, T* matrix, T* vector, T* result)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 	int offSet = index * dim;
@@ -7,7 +9,7 @@ __global__ void moltiplicationMatrixVector(int dim, int* matrix, int* vector, in
 		result[index] += matrix[i + offSet] * vector[i];
 }
 
-__global__ void moltiplicationVectorVector(int dim, int* vector1, int* vector2, int* result)
+__global__ void moltiplicationVectorVector(int dim, T* vector1, T* vector2, T* result)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 

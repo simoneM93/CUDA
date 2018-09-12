@@ -1,4 +1,6 @@
-__global__ void sumMatrix(int dim, int* matrixA, int* matrixB, int* resultMatrix)
+#include "Type.cu"
+
+__global__ void sumMatrix(int dim, T* matrixA, T* matrixB, T* resultMatrix)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 	int offSet = index * dim;

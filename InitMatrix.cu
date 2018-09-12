@@ -1,4 +1,6 @@
-__global__ void initMatrix(int dim, int* matrix)
+#include "Type.cu"
+
+__global__ void initMatrix(int dim, T* matrix)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -10,12 +12,12 @@ __global__ void initMatrix(int dim, int* matrix)
 	matrix[index] = index + 1;
 }
 
-__global__ void initMatrixSDD(int dim, int* matrix)
+__global__ void initMatrixSDD(int dim, T* matrix)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 
 	int offSet = index * dim;
 
 	for(int i = 0; i < dim; ++i)	
-		i != index ? matrix[i + offSet] = 1 : matrix[i + offSet] = 5;
+		i != index ? matrix[i + offSet] = 1 : matrix[i + offSet] = 65;
 }

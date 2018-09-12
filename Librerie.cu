@@ -20,5 +20,4 @@
 #include "DiffVectorVector.cu" //Esegue la differenza tra due vettori
 #include "NormaDue.cu" //Calcola la Norma Due di un vettore
 #include "Check_Cuda.cu" //Errori
-
-typedef int type;
+#include "CopyVectorToVector.cu" //Copia un vettore in un altro vettore

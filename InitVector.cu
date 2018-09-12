@@ -1,4 +1,6 @@
-__global__ void initVector(int dim, int* matrix)
+#include "Type.cu"
+
+__global__ void initVector(int dim, T* matrix)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -8,7 +10,7 @@ __global__ void initVector(int dim, int* matrix)
 	matrix[index] = 0;
 }
 
-__global__ void initVectorWithIndex(int dim, int* matrix)
+__global__ void initVectorWithIndex(int dim, T* matrix)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 

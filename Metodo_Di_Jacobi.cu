@@ -1,10 +1,11 @@
 #include "Librerie.cu"
+#include "Type.cu"
 
 const int BlockSize = 8;
 
 int main(int argc, char **argv)
 {
-	int dim = 4;
+	int dim = 64;
 	int NumBlock = (dim + BlockSize - 1) / BlockSize;
 	int NumThread = BlockSize;
 	float gpu_runtime;
@@ -16,23 +17,20 @@ int main(int argc, char **argv)
     cudaEventCreate(&gpu_start);
     cudaEventCreate(&gpu_stop);
 
-    //int *hNorma, *dNorma;
-    type *hMatrix, *dMatrix;
-    type *hVector, *dVector;
-    type *hVectorB, *dVectorB;
-	type *hMoltiplicationResult, *dMoltiplicationResult;
-    //int *hSumMatrix, *dSumMatrix;    	
-	//int *hTraspMatrix, *dTraspMatrix;
-    type *hSumVectorResult, *dSumVectorResult;
-    type *hDiagonalMatrix, *dDiagonalMatrix;
-    type *hTriangularMatrix, *dTriangularMatrix;
-    type *hMoltiplicationVector, *dMoltiplicationVector;
+    T *hMatrix, *dMatrix;
+    T *hVector, *dVector;
+    T *hVectorB, *dVectorB;
+	T *hMoltiplicationResult, *dMoltiplicationResult;
+    T *hSumVectorResult, *dSumVectorResult;
+    T *hDiagonalMatrix, *dDiagonalMatrix;
+    T *hTriangularMatrix, *dTriangularMatrix;
+    T *hVectorResult, *dVectorResult;
 
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix = true;
 
-	hMatrix = (type*)malloc(dim*dim*sizeof(type));
-	error = cudaMalloc(&dMatrix, dim*dim*sizeof(type));
+	hMatrix = (T*)malloc(dim*dim*sizeof(T));
+	error = cudaMalloc(&dMatrix, dim*dim*sizeof(T));
 	check_cuda(error, "Matrix");
 
 	//Inizializzo la Matrice
@@ -43,7 +41,7 @@ int main(int argc, char **argv)
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
     printf("\nCUDA runtime InitMatrix: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
-	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(type), cudaMemcpyDeviceToHost);
+	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(T), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
 
 	hFlag = (bool*)malloc(dim*sizeof(bool));
@@ -64,9 +62,9 @@ int main(int argc, char **argv)
 	/*printf("\nMatrix: ");
 	for(int i = 0; i < dim*dim; i++) {
 		if(i % dim == 0) printf("\n");
-		printf("%d ", hMatrix[i]);
+		printf("%f ", hMatrix[i]);
 	}*/
-
+	
 	for(int i = 0; i < dim; ++i)
 		isdiagonalyDominantMatrix = isdiagonalyDominantMatrix && hFlag[i];
 
@@ -76,35 +74,34 @@ int main(int argc, char **argv)
 	{
 		printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n\n");
 
-		hDiagonalMatrix = (type*)malloc(dim*sizeof(type));
-		hTriangularMatrix = (type*)malloc(dim*dim*sizeof(type));
-		hVector = (type*)malloc(dim*sizeof(type));
-		hVectorB = (type*)malloc(dim*sizeof(type));
-		hMoltiplicationResult = (type*)malloc(dim*sizeof(type));
-		hSumVectorResult = (type*)malloc(dim*sizeof(type));
-		hMoltiplicationVector = (type*)malloc(dim*sizeof(type));
+		hDiagonalMatrix = (T*)malloc(dim*sizeof(T));
+		hTriangularMatrix = (T*)malloc(dim*dim*sizeof(T));
+		hVector = (T*)malloc(dim*sizeof(T));
+		hVectorB = (T*)malloc(dim*sizeof(T));
+		hMoltiplicationResult = (T*)malloc(dim*sizeof(T));
+		hSumVectorResult = (T*)malloc(dim*sizeof(T));
+		hVectorResult = (T*)malloc(dim*sizeof(T));
 
-		error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(type));
+		error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(T));
 		check_cuda(error, "Diagonal");
 
-		error = cudaMalloc(&dTriangularMatrix, dim*dim*sizeof(type));
+		error = cudaMalloc(&dTriangularMatrix, dim*dim*sizeof(T));
 		check_cuda(error, "Triangular");
 
-		error = cudaMalloc(&dVector, dim*sizeof(type));
+		error = cudaMalloc(&dVector, dim*sizeof(T));
 		check_cuda(error, "Vector");
 
-		error = cudaMalloc(&dVectorB, dim*sizeof(type));
+		error = cudaMalloc(&dVectorB, dim*sizeof(T));
 		check_cuda(error, "VectorB");
 
-		error = cudaMalloc(&dMoltiplicationResult, dim*sizeof(type));
+		error = cudaMalloc(&dMoltiplicationResult, dim*sizeof(T));
 		check_cuda(error, "MoltiplicazionResult");
 
-		error = cudaMalloc(&dSumVectorResult, dim*sizeof(type));
+		error = cudaMalloc(&dSumVectorResult, dim*sizeof(T));
 		check_cuda(error, "VectorB");
 
-		error = cudaMalloc(&dMoltiplicationVector, dim*sizeof(type));
-		check_cuda(error, "MoltiplicationVector");
-
+		error = cudaMalloc(&dVectorResult, dim*sizeof(T));
+		check_cuda(error, "VectorResult");
 
 		//Divido la matrice in Matrice Diagonale e Matrice Triangolare(Superiore ed Inferiore)
 		cudaEventRecord(gpu_start, 0);
@@ -114,8 +111,8 @@ int main(int argc, char **argv)
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    printf("CUDA runtime MatrixDivision: %gms\n", gpu_runtime);
 		error = cudaThreadSynchronize();
-		error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(type), cudaMemcpyDeviceToHost);
-		error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*sizeof(type), cudaMemcpyDeviceToHost);		
+		error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(T), cudaMemcpyDeviceToHost);
+		error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*sizeof(T), cudaMemcpyDeviceToHost);		
 
 		//Inizializzo Il primo Vettore X al passo 0
 		cudaEventRecord(gpu_start, 0);
@@ -123,9 +120,9 @@ int main(int argc, char **argv)
 		cudaEventRecord(gpu_stop, 0);
 	    cudaEventSynchronize(gpu_stop);
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    printf("CUDA runtime InitVector: %gms\n", gpu_runtime);
+	    printf("CUDA runtime InitVectorX: %gms\n", gpu_runtime);
 		error = cudaThreadSynchronize();
-		error = cudaMemcpy(hVector, dVector, dim*sizeof(type), cudaMemcpyDeviceToHost);		
+		error = cudaMemcpy(hVector, dVector, dim*sizeof(T), cudaMemcpyDeviceToHost);		
 
 		//Inizializzo il Vettore B
 		cudaEventRecord(gpu_start, 0);
@@ -133,28 +130,31 @@ int main(int argc, char **argv)
 		cudaEventRecord(gpu_stop, 0);
 	    cudaEventSynchronize(gpu_stop);
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    printf("CUDA runtime InitVector: %gms\n", gpu_runtime);
+	    printf("CUDA runtime InitVectorB: %gms\n", gpu_runtime);
 		error = cudaThreadSynchronize();
-		error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(type), cudaMemcpyDeviceToHost);	
+		error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(T), cudaMemcpyDeviceToHost);	
 		
-		int MaxIteraton;
-		scanf("%d", &MaxIteraton);
+		
 
 		printf("\n\nVextorB:\n");
 			for(int j = 0; j < dim; j++)
-				printf("%d ", hVectorB[j]);
+				printf("%f ", hVectorB[j]);
 
 		printf("\n\n----------------------------------------------------------------------------------\n\n");
 		
+		int MaxIteraton;
+		scanf("%d", &MaxIteraton);
 		int i = 0;
 		while(i < MaxIteraton)
 		{
 			printf("\nIterazione N°: %d\n", i);
+			
 			printf("\n\nVextorX:\n");
 			for(int j = 0; j < dim; j++)
-				printf("%d ", hVector[j]);
+				printf("%f \n", hVector[j]);
 
-			printf("\n\n----------------------------------------------------------------------------------\n\n");
+			//printf("\n\n----------------------------------------------------------------------------------\n\n");
+			
 			//Moltiplico La matrice triangolare per il vettore X al passo K
 			cudaEventRecord(gpu_start, 0);
 			moltiplicationMatrixVector<<<NumBlock, NumThread>>>(dim, dTriangularMatrix, dVector, dMoltiplicationResult);
@@ -163,11 +163,11 @@ int main(int argc, char **argv)
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 		    printf("CUDA runtime MoltiplicationMatrixVector: %gms\n", gpu_runtime);
 		    error = cudaThreadSynchronize();
-			error = cudaMemcpy(hMoltiplicationResult, dMoltiplicationResult, dim*sizeof(type), cudaMemcpyDeviceToHost);
+			error = cudaMemcpy(hMoltiplicationResult, dMoltiplicationResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			printf("\nMoltiplicationMatrixVector:\n");
+			printf("\nMoltiplication Triangular Matrix With Vector X^%d:\n", i);
 			for(int j = 0; j < dim; j++)
-				printf("%d ", hMoltiplicationResult[j]);
+				printf("%f \n", hMoltiplicationResult[j]);
 			printf("\n\n");
 
 			//Sommo il risultato della precedente moltiplicazione con il vettore B
@@ -178,26 +178,42 @@ int main(int argc, char **argv)
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 		    printf("CUDA runtime SumVectorVector: %gms\n", gpu_runtime);
 		    error = cudaThreadSynchronize();
-			error = cudaMemcpy(hSumVectorResult, dSumVectorResult, dim*sizeof(type), cudaMemcpyDeviceToHost);
+			error = cudaMemcpy(hSumVectorResult, dSumVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			printf("\nSumVectorVector:\n");
+			printf("\nSum Previous Vector With Vector B:\n");
 			for(int j = 0; j < dim; j++)
-				printf("%d ", hSumVectorResult[j]);
+				printf("%f \n", hSumVectorResult[j]);
 			printf("\n\n");
 						
 			//Moltiplico il risultato della precedente somma per il la matrice Diagonale(Trattata come vettore)
 			cudaEventRecord(gpu_start, 0);
-			moltiplicationVectorVector<<<NumBlock, NumThread>>>(dim, dDiagonalMatrix, dSumVectorResult, dVector);
+			moltiplicationVectorVector<<<NumBlock, NumThread>>>(dim, dDiagonalMatrix, dSumVectorResult, dVectorResult);
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 		    printf("CUDA runtime MoltiplicationVectorVector: %gms\n", gpu_runtime);
 		    error = cudaThreadSynchronize();
-			error = cudaMemcpy(hVector, dVector, dim*sizeof(type), cudaMemcpyDeviceToHost);
+			error = cudaMemcpy(hVectorResult, dVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			printf("\nMoltiplicationVector:\n");
+			printf("\nDiagonal Vector With Previous Vector (X^(%d+1)):\n", i);
 			for(int j = 0; j < dim; j++)
-				printf("%d ", hVector[j]);
+				printf("%f \n", hVectorResult[j]);
+
+			//if(/*Condizione di Arresto se si arriva alla convergenza*/)
+
+			cudaEventRecord(gpu_start, 0);
+			copyVectorToVector<<<NumBlock, NumThread>>>(dim, dVectorResult, dVector);
+			cudaEventRecord(gpu_stop, 0);
+		    cudaEventSynchronize(gpu_stop);
+		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+		    printf("CUDA runtime CopyVectorToVector: %gms\n", gpu_runtime);
+		    error = cudaThreadSynchronize();
+			error = cudaMemcpy(hVector, dVector, dim*sizeof(T), cudaMemcpyDeviceToHost);
+
+			printf("\nCopy VectorResult to Vector:\n", i);
+			for(int j = 0; j < dim; j++)
+				printf("%f \n", hVector[j]);
+
 
 			printf("\n\n----------------------------------------------------------------------------------\n\n");
 			i++;
@@ -206,7 +222,7 @@ int main(int argc, char **argv)
 		/*printf("\nTriangular: \n");
 		for(int i = 0; i < dim*dim; i++) {
 			if(i % dim == 0) printf("\n");
-			printf("%d ", hTriangularMatrix[i]);
+			printf("%f ", hTriangularMatrix[i]);
 		}
 
 		printf("\n");
@@ -214,36 +230,38 @@ int main(int argc, char **argv)
 		printf("\nDiagonal:");
 		for(int i = 0; i < dim; i++) {
 			if(i % dim == 0) printf("\n");
-			printf("%d ", hDiagonalMatrix[i]);
+			printf("%f ", hDiagonalMatrix[i]);
 		}
 
 		printf("\n");
 
 		printf("\nSumVectorResult:\n");
 		for(int i = 0; i < dim; i++)
-			printf("%d ", hSumVectorResult[i]);
+			printf("%f ", hSumVectorResult[i]);
 
 		printf("\n");
 		
 		printf("\nMoltiplicationVector:\n");
 		for(int i = 0; i < dim; i++)
-			printf("%d ", hMoltiplicationVector[i]);
+			printf("%f ", hMoltiplicationVector[i]);
 
 
 		/*printf("\nVectorB:\n");
 		for(int i = 0; i < dim; i++)
-			printf("%d ", hVectorB[i]);
+			printf("%f ", hVectorB[i]);
 
 		printf("\n");
-
-		printf("\nVector0:\n");
+		
+		printf("\nVector^%d:\n", i);
 		for(int i = 0; i < dim; i++) {
-			printf("%d ", hVector[i]);
+			printf("%f \n", hVector[i]);
 		}
-
+		/*
 		printf("\nMoltiplicationResult:\n");
 		for(int i = 0; i < dim; i++) {
-			printf("%d ", hMoltiplicationResult[i]);
+			printf("%f ", hMoltiplicationResult[i]);
 		}*/
+
+		return 0;
 	}
 }

@@ -1,6 +1,7 @@
 #include "AbsoluteValue.cu"
+#include "Type.cu"
 
-__global__ void diagonalyDominantMatrix(int dim, int* matrix, bool* flag)
+__global__ void diagonalyDominantMatrix(int dim, T* matrix, bool* flag)
 {
 
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
