@@ -142,8 +142,14 @@ int main(int argc, char **argv)
 
 		printf("\n\n----------------------------------------------------------------------------------\n\n");
 		
-		int MaxIteraton;
+		printf("\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ");
+		int MaxIteraton=0;
 		scanf("%d", &MaxIteraton);
+
+		printf("\nInserire Valore Epsilon [Es. 10^(-12) = 0,000000000001]: ");
+		float epsilon=0.0f;
+		scanf("%f", &epsilon);
+
 		int i = 0;
 		while(i < MaxIteraton)
 		{
