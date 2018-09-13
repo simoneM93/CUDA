@@ -5,8 +5,8 @@ using namespace std;
 
 const int BlockSize = 8;
 int MaxIteraton;
-T epsilon;
-int base;
+float epsilon;
+//int base;
 int esponente;
 
 int main(int argc, char **argv)
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     T *hVectorResult, *dVectorResult;
     T *hDiffVectorResult, *dDiffVectorResult;
     T *hNormaResult, *dNormaResult;
-    T *hNormaResult2, *dNormaResult2;
+    //T *hNormaResult2, *dNormaResult2;
 
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix = true;
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 		hVectorResult = (T*)malloc(dim*sizeof(T));
 		hDiffVectorResult = (T*)malloc(dim*sizeof(T));
 		hNormaResult = (T*)malloc(1*sizeof(T));
-		hNormaResult2 = (T*)malloc(1*sizeof(T));
+		//hNormaResult2 = (T*)malloc(1*sizeof(T));
 
 		error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(T));
 		check_cuda(error, "Diagonal");
@@ -120,8 +120,8 @@ int main(int argc, char **argv)
 		error = cudaMalloc(&dNormaResult, 1*sizeof(T));
 		check_cuda(error, "NormaResult");
 
-		error = cudaMalloc(&dNormaResult2, 1*sizeof(T));
-		check_cuda(error, "NormaResult2");
+		/*error = cudaMalloc(&dNormaResult2, 1*sizeof(T));
+		check_cuda(error, "NormaResult2");*/
 
 		//Divido la matrice in Matrice Diagonale e Matrice Triangolare(Superiore ed Inferiore)
 		cudaEventRecord(gpu_start, 0);
@@ -163,13 +163,13 @@ int main(int argc, char **argv)
 		cout<<"\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ";
 		cin>>MaxIteraton;
 
-		cout<<"Inserire La Base Per Il Calcolo Della Epsilon: ";
-		cin>>base;
+		/*cout<<"Inserire La Base Per Il Calcolo Della Epsilon: ";
+		cin>>base;*/
 
-		cout<<"\nInserire L'Esponente Per Il Calcolo Della Epsilon: ";
+		cout<<"Inserire L'Esponente Per Il Calcolo Della Epsilon [Es. -12]: ";
 		cin>>esponente;
 
-		epsilon = pow(base, -esponente);
+		epsilon = pow(10, esponente);
 
 		cout<<"L'Epsilon Vale: "<< epsilon<<endl;
 		system("PAUSE");
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 		int i = 0;
 		while(i < MaxIteraton)
 		{
-			printf("\nIterazione N°: %d\n", i);
+			cout<<"\nIterazione N°: "<<i<<endl;
 			
 			/*printf("\n\nVextorX:\n");
 			for(int j = 0; j < dim; j++)
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hNormaResult, dNormaResult, 1*sizeof(T), cudaMemcpyDeviceToHost);
 
-			cudaEventRecord(gpu_start, 0);
+			/*cudaEventRecord(gpu_start, 0);
 			normaDue<<<NumBlock, NumThread>>>(dim, dVectorResult, dNormaResult2);
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
@@ -255,12 +255,12 @@ int main(int argc, char **argv)
 			error = cudaMemcpy(hNormaResult2, dNormaResult2, 1*sizeof(T), cudaMemcpyDeviceToHost);
 			cout<<"Norma Differenza: "<<hNormaResult[0]<<endl<<"Norma vettore: "<<hNormaResult2[0]<<endl;
 			
-			T divisione = (hNormaResult[0]/hNormaResult2[0]);
+			T divisione = (hNormaResult[0]/hNormaResult2[0]);*/
 
-			cout<<"Divisione: "<<divisione<<endl;
+			cout<<"NormaVector: "<<hNormaResult[0]<<endl;
 			cout<<"L'Epsilon Vale: "<< epsilon<<endl;
 
-			if(divisione < epsilon)
+			if(hNormaResult[0] < epsilon)
 			{	
 				cout<<"\n\n----------------------------------------------------------------------------------\n\n";				
 				cout<<"Criterio Di Arresto Rispettato!";
