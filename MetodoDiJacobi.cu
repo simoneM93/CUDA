@@ -2,6 +2,7 @@
 
 int main (int argc, char **argv)
 {
+	cout << "dio cane" << endl;
 	cudaError_t error;
 	cudaEvent_t gpu_start, gpu_stop;
     float gpu_runtime;
@@ -63,7 +64,7 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime InitMatrix: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime InitMatrix: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
@@ -75,7 +76,7 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime SumMatrix: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime SumMatrix: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hSumMatrix, dSumMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
@@ -87,7 +88,7 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime diagonalyDominantMatrix: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime diagonalyDominantMatrix: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaMemcpy(hFlag, dFlag, dim*sizeof(bool), cudaMemcpyDeviceToHost);
@@ -97,7 +98,7 @@ int main (int argc, char **argv)
 	for(int i = 0; i < dim; ++i)
 		isdiagonalyDominantMatrix &= hFlag[i];
 
-	!isdiagonalyDominantMatrix ? printf("\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il metodo di Jacobi!\n\n") : printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n\n");
+	!isdiagonalyDominantMatrix ? fprintf("\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il metodo di Jacobi!\n\n") : fprintf("\nLa matrice è Strettamente Diagonalmente Dominante!\n\n");
 	
 
 	cudaEventRecord(gpu_start, 0);
@@ -105,7 +106,7 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime TrasposedMatrix: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime TrasposedMatrix: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hTraspMatrix, dTraspMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
@@ -117,7 +118,7 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime MatrixDivision: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime MatrixDivision: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(int), cudaMemcpyDeviceToHost);
 	
@@ -132,7 +133,7 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime InitVector: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime InitVector: %gms\n", gpu_runtime);
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hVector, dVector, dim*sizeof(int), cudaMemcpyDeviceToHost);
 
@@ -143,7 +144,7 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime MoltiplicationMatrixVector: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime MoltiplicationMatrixVector: %gms\n", gpu_runtime);
     error = cudaThreadSynchronize();
 	error = cudaMemcpy(hResult, dResult, dim*sizeof(int), cudaMemcpyDeviceToHost);
 
@@ -154,7 +155,7 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime SumVectorVector: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime SumVectorVector: %gms\n", gpu_runtime);
     error = cudaThreadSynchronize();
 	error = cudaMemcpy(hVectorResult, dVectorResult, dim*sizeof(int), cudaMemcpyDeviceToHost);
 
@@ -165,12 +166,12 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime NormaDue: %gms\n", gpu_runtime);
+    fprintf("CUDA runtime NormaDue: %gms\n", gpu_runtime);
     error = cudaThreadSynchronize();
 	error = cudaMemcpy(hNorma, dNorma, dim*sizeof(int), cudaMemcpyDeviceToHost);
 
 	for(int i = 0; i < dim; ++i)
-		printf("%d ", hDiagonalMatrix[i]);
+		fprintf("%d ", hDiagonalMatrix[i]);
 
 	int normaSum = 0;
 
@@ -182,11 +183,11 @@ int main (int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("\nCUDA runtime RadiceNorma: %gms\n", gpu_runtime);
+    fprintf("\nCUDA runtime RadiceNorma: %gms\n", gpu_runtime);
 
-	printf("\nNorma: %d, RadiceNorma: %f\n", normaSum, radiceNorma);
+	fprintf("\nNorma: %d, RadiceNorma: %f\n", normaSum, radiceNorma);
 
 	tot_gpu_runtime += gpu_runtime;
 
-	printf("\nCUDA tot runtime: %gms\n", tot_gpu_runtime);
+	fprintf("\nCUDA tot runtime: %gms\n", tot_gpu_runtime);
 }

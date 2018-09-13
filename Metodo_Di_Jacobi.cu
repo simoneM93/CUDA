@@ -1,7 +1,13 @@
 #include "Librerie.cu"
 #include "Type.cu"
 
+using namespace std;
+
 const int BlockSize = 8;
+int MaxIteraton;
+T epsilon;
+int base;
+int esponente;
 
 int main(int argc, char **argv)
 {
@@ -25,6 +31,9 @@ int main(int argc, char **argv)
     T *hDiagonalMatrix, *dDiagonalMatrix;
     T *hTriangularMatrix, *dTriangularMatrix;
     T *hVectorResult, *dVectorResult;
+    T *hDiffVectorResult, *dDiffVectorResult;
+    T *hNormaResult, *dNormaResult;
+    T *hNormaResult2, *dNormaResult2;
 
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix = true;
@@ -81,6 +90,9 @@ int main(int argc, char **argv)
 		hMoltiplicationResult = (T*)malloc(dim*sizeof(T));
 		hSumVectorResult = (T*)malloc(dim*sizeof(T));
 		hVectorResult = (T*)malloc(dim*sizeof(T));
+		hDiffVectorResult = (T*)malloc(dim*sizeof(T));
+		hNormaResult = (T*)malloc(1*sizeof(T));
+		hNormaResult2 = (T*)malloc(1*sizeof(T));
 
 		error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(T));
 		check_cuda(error, "Diagonal");
@@ -102,6 +114,15 @@ int main(int argc, char **argv)
 
 		error = cudaMalloc(&dVectorResult, dim*sizeof(T));
 		check_cuda(error, "VectorResult");
+
+		error = cudaMalloc(&dDiffVectorResult, dim*sizeof(T));
+		check_cuda(error, "DiffVectorResult");
+
+		error = cudaMalloc(&dNormaResult, 1*sizeof(T));
+		check_cuda(error, "NormaResult");
+
+		error = cudaMalloc(&dNormaResult2, 1*sizeof(T));
+		check_cuda(error, "NormaResult2");
 
 		//Divido la matrice in Matrice Diagonale e Matrice Triangolare(Superiore ed Inferiore)
 		cudaEventRecord(gpu_start, 0);
@@ -136,30 +157,34 @@ int main(int argc, char **argv)
 		
 		
 
-		printf("\n\nVextorB:\n");
+		/*printf("\n\nVextorB:\n");
 			for(int j = 0; j < dim; j++)
-				printf("%f ", hVectorB[j]);
+				printf("%f ", hVectorB[j]);*/
 
 		printf("\n\n----------------------------------------------------------------------------------\n\n");
 		
-		printf("\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ");
-		int MaxIteraton=0;
-		scanf("%d", &MaxIteraton);
+		cout<<"\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ";
+		cin>>MaxIteraton;
 
-		printf("\nInserire Valore Epsilon [Es. 10^(-12) = 0,000000000001]: ");
-		float epsilon=0.0f;
-		scanf("%f", &epsilon);
+		cout<<"Inserire La Base Per Il Calcolo Della Epsilon: ";
+		cin>>base;
+
+		cout<<"\nInserire L'Esponente Per Il Calcolo Della Epsilon: ";
+		cin>>esponente;
+
+		epsilon = pow(base, -esponente);
+
+		cout<<"L'Epsilon Vale: "<< epsilon<<endl;
+		system("PAUSE");
 
 		int i = 0;
 		while(i < MaxIteraton)
 		{
 			printf("\nIterazione N°: %d\n", i);
 			
-			printf("\n\nVextorX:\n");
+			/*printf("\n\nVextorX:\n");
 			for(int j = 0; j < dim; j++)
-				printf("%f \n", hVector[j]);
-
-			//printf("\n\n----------------------------------------------------------------------------------\n\n");
+				printf("%f \n", hVector[j]);*/
 			
 			//Moltiplico La matrice triangolare per il vettore X al passo K
 			cudaEventRecord(gpu_start, 0);
@@ -171,10 +196,10 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hMoltiplicationResult, dMoltiplicationResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			printf("\nMoltiplication Triangular Matrix With Vector X^%d:\n", i);
+			/*printf("\nMoltiplication Triangular Matrix With Vector X^%d:\n", i);
 			for(int j = 0; j < dim; j++)
 				printf("%f \n", hMoltiplicationResult[j]);
-			printf("\n\n");
+			printf("\n\n");*/
 
 			//Sommo il risultato della precedente moltiplicazione con il vettore B
 			cudaEventRecord(gpu_start, 0);
@@ -186,10 +211,10 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hSumVectorResult, dSumVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			printf("\nSum Previous Vector With Vector B:\n");
+			/*printf("\nSum Previous Vector With Vector B:\n");
 			for(int j = 0; j < dim; j++)
 				printf("%f \n", hSumVectorResult[j]);
-			printf("\n\n");
+			printf("\n\n");*/
 						
 			//Moltiplico il risultato della precedente somma per il la matrice Diagonale(Trattata come vettore)
 			cudaEventRecord(gpu_start, 0);
@@ -201,11 +226,50 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hVectorResult, dVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			printf("\nDiagonal Vector With Previous Vector (X^(%d+1)):\n", i);
+			/*printf("\nDiagonal Vector With Previous Vector (X^(%d+1)):\n", i);
 			for(int j = 0; j < dim; j++)
-				printf("%f \n", hVectorResult[j]);
+				printf("%f \n", hVectorResult[j]);*/
 
-			//if(/*Condizione di Arresto se si arriva alla convergenza*/)
+			cudaEventRecord(gpu_start, 0);
+			diffVectorVector<<<NumBlock, NumThread>>>(dim, dVectorResult, dVector, dDiffVectorResult);
+			cudaEventRecord(gpu_stop, 0);
+		    cudaEventSynchronize(gpu_stop);
+		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+		    printf("CUDA runtime DiffVectorVector: %gms\n", gpu_runtime);
+		    error = cudaThreadSynchronize();
+			error = cudaMemcpy(hDiffVectorResult, dDiffVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
+
+			cudaEventRecord(gpu_start, 0);
+			normaDue<<<NumBlock, NumThread>>>(dim, dDiffVectorResult, dNormaResult);
+			cudaEventRecord(gpu_stop, 0);
+		    cudaEventSynchronize(gpu_stop);
+		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+		    printf("CUDA runtime NormaDue Di x^(%d) - x^(%d): %gms\n", i, i-1, gpu_runtime);
+		    error = cudaThreadSynchronize();
+			error = cudaMemcpy(hNormaResult, dNormaResult, 1*sizeof(T), cudaMemcpyDeviceToHost);
+
+			cudaEventRecord(gpu_start, 0);
+			normaDue<<<NumBlock, NumThread>>>(dim, dVectorResult, dNormaResult2);
+			cudaEventRecord(gpu_stop, 0);
+		    cudaEventSynchronize(gpu_stop);
+		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+		    printf("CUDA runtime NormaDue Di x^(%d): %gms\n", i, gpu_runtime);
+		    error = cudaThreadSynchronize();
+			error = cudaMemcpy(hNormaResult2, dNormaResult2, 1*sizeof(T), cudaMemcpyDeviceToHost);
+			cout<<"Norma Differenza: "<<hNormaResult[0]<<endl<<"Norma vettore: "<<hNormaResult2[0]<<endl;
+			
+			T divisione = (hNormaResult[0]/hNormaResult2[0]);
+
+			cout<<"Divisione: "<<divisione<<endl;
+			cout<<"L'Epsilon Vale: "<< epsilon<<endl;
+
+			if(divisione < epsilon)
+			{	
+				printf("\n\n----------------------------------------------------------------------------------\n\n");				
+				cout<<"Criterio Di Arresto Rispettato!";
+				printf("\n\n----------------------------------------------------------------------------------\n\n");
+				return 0;
+			}
 
 			cudaEventRecord(gpu_start, 0);
 			copyVectorToVector<<<NumBlock, NumThread>>>(dim, dVectorResult, dVector);
@@ -216,9 +280,9 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hVector, dVector, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			printf("\nCopy VectorResult to Vector:\n", i);
+			/*printf("\nCopy VectorResult to Vector:\n", i);
 			for(int j = 0; j < dim; j++)
-				printf("%f \n", hVector[j]);
+				printf("%f \n", hVector[j]);*/
 
 
 			printf("\n\n----------------------------------------------------------------------------------\n\n");
