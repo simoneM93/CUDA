@@ -15,7 +15,6 @@ int main(int argc, char **argv)
 	int NumBlock = (dim + BlockSize - 1) / BlockSize;
 	int NumThread = BlockSize;
 	float gpu_runtime;
-    //float tot_gpu_runtime = 0.0f;
 
 	cudaError_t error;
 	cudaEvent_t gpu_start, gpu_stop;
@@ -48,7 +47,7 @@ int main(int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("\nCUDA runtime InitMatrix: %gms\n", gpu_runtime);
+    cout<<"\nCUDA runtime InitMatrix: "<<gpu_runtime<<"ms\n";
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(T), cudaMemcpyDeviceToHost);
 	error = cudaThreadSynchronize();
@@ -63,10 +62,10 @@ int main(int argc, char **argv)
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-    printf("CUDA runtime diagonalyDominantMatrix: %gms\n", gpu_runtime);
+    cout<<"\nCUDA runtime DiagonalyDominantMatrix: "<<gpu_runtime<<"ms\n";
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hFlag, dFlag, dim*sizeof(bool), cudaMemcpyDeviceToHost);
-	printf("\n\n----------------------------------------------------------------------------------\n\n");
+	cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 
 	/*printf("\nMatrix: ");
 	for(int i = 0; i < dim*dim; i++) {
@@ -78,10 +77,10 @@ int main(int argc, char **argv)
 		isdiagonalyDominantMatrix = isdiagonalyDominantMatrix && hFlag[i];
 
 	if(!isdiagonalyDominantMatrix)
-		printf("\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il Metodo di Jacobi!\n\n");
+		cout<<"\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il Metodo di Jacobi!\n\n";
 	else
 	{
-		printf("\nLa matrice è Strettamente Diagonalmente Dominante!\n\n");
+		cout<<"\nLa matrice è Strettamente Diagonalmente Dominante!\n\n";
 
 		hDiagonalMatrix = (T*)malloc(dim*sizeof(T));
 		hTriangularMatrix = (T*)malloc(dim*dim*sizeof(T));
@@ -130,7 +129,7 @@ int main(int argc, char **argv)
 		cudaEventRecord(gpu_stop, 0);
 	    cudaEventSynchronize(gpu_stop);
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    printf("CUDA runtime MatrixDivision: %gms\n", gpu_runtime);
+	    cout<<"\nCUDA runtime MatrixDivision: "<<gpu_runtime<<"ms\n";
 		error = cudaThreadSynchronize();
 		error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(T), cudaMemcpyDeviceToHost);
 		error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*sizeof(T), cudaMemcpyDeviceToHost);		
@@ -141,7 +140,7 @@ int main(int argc, char **argv)
 		cudaEventRecord(gpu_stop, 0);
 	    cudaEventSynchronize(gpu_stop);
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    printf("CUDA runtime InitVectorX: %gms\n", gpu_runtime);
+	    cout<<"\nCUDA runtime InitVectorX: "<<gpu_runtime<<"ms\n";
 		error = cudaThreadSynchronize();
 		error = cudaMemcpy(hVector, dVector, dim*sizeof(T), cudaMemcpyDeviceToHost);		
 
@@ -151,17 +150,15 @@ int main(int argc, char **argv)
 		cudaEventRecord(gpu_stop, 0);
 	    cudaEventSynchronize(gpu_stop);
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    printf("CUDA runtime InitVectorB: %gms\n", gpu_runtime);
+	    cout<<"\nCUDA runtime InitVectorB: "<<gpu_runtime<<"ms\n";
 		error = cudaThreadSynchronize();
-		error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(T), cudaMemcpyDeviceToHost);	
-		
-		
+		error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(T), cudaMemcpyDeviceToHost);		
 
 		/*printf("\n\nVextorB:\n");
 			for(int j = 0; j < dim; j++)
 				printf("%f ", hVectorB[j]);*/
 
-		printf("\n\n----------------------------------------------------------------------------------\n\n");
+		cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 		
 		cout<<"\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ";
 		cin>>MaxIteraton;
@@ -192,7 +189,7 @@ int main(int argc, char **argv)
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-		    printf("CUDA runtime MoltiplicationMatrixVector: %gms\n", gpu_runtime);
+		    cout<<"\nCUDA runtime MoltiplicationMatrixVector: "<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hMoltiplicationResult, dMoltiplicationResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
@@ -207,7 +204,7 @@ int main(int argc, char **argv)
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-		    printf("CUDA runtime SumVectorVector: %gms\n", gpu_runtime);
+		    cout<<"\nCUDA runtime SumVectorVector: "<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hSumVectorResult, dSumVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
@@ -222,7 +219,7 @@ int main(int argc, char **argv)
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-		    printf("CUDA runtime MoltiplicationVectorVector: %gms\n", gpu_runtime);
+		    cout<<"\nCUDA runtime MoltiplicationVectorVector: "<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hVectorResult, dVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
@@ -235,7 +232,7 @@ int main(int argc, char **argv)
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-		    printf("CUDA runtime DiffVectorVector: %gms\n", gpu_runtime);
+		    cout<<"\nCUDA runtime DiffVectorVector: "<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hDiffVectorResult, dDiffVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
@@ -244,7 +241,7 @@ int main(int argc, char **argv)
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-		    printf("CUDA runtime NormaDue Di x^(%d) - x^(%d): %gms\n", i, i-1, gpu_runtime);
+		    cout<<"\nCUDA runtime NormaDue Di x^("<<i<<") - x^("<<i-1<<"): "<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hNormaResult, dNormaResult, 1*sizeof(T), cudaMemcpyDeviceToHost);
 
@@ -253,7 +250,7 @@ int main(int argc, char **argv)
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-		    printf("CUDA runtime NormaDue Di x^(%d): %gms\n", i, gpu_runtime);
+		    cout<<"\nCUDA runtime NormaDue Di x^("<<i<<"):"<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hNormaResult2, dNormaResult2, 1*sizeof(T), cudaMemcpyDeviceToHost);
 			cout<<"Norma Differenza: "<<hNormaResult[0]<<endl<<"Norma vettore: "<<hNormaResult2[0]<<endl;
@@ -265,9 +262,9 @@ int main(int argc, char **argv)
 
 			if(divisione < epsilon)
 			{	
-				printf("\n\n----------------------------------------------------------------------------------\n\n");				
+				cout<<"\n\n----------------------------------------------------------------------------------\n\n";				
 				cout<<"Criterio Di Arresto Rispettato!";
-				printf("\n\n----------------------------------------------------------------------------------\n\n");
+				cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 				return 0;
 			}
 
@@ -276,7 +273,7 @@ int main(int argc, char **argv)
 			cudaEventRecord(gpu_stop, 0);
 		    cudaEventSynchronize(gpu_stop);
 		    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-		    printf("CUDA runtime CopyVectorToVector: %gms\n", gpu_runtime);
+		    cout<<"\nCUDA runtime CopyVectorToVector: "<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hVector, dVector, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
@@ -285,7 +282,7 @@ int main(int argc, char **argv)
 				printf("%f \n", hVector[j]);*/
 
 
-			printf("\n\n----------------------------------------------------------------------------------\n\n");
+			cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 			i++;
 		}
 
