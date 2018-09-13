@@ -6,7 +6,6 @@ using namespace std;
 const int BlockSize = 8;
 int MaxIteraton;
 float epsilon;
-//int base;
 int esponente;
 
 int main(int argc, char **argv)
@@ -66,12 +65,6 @@ int main(int argc, char **argv)
 	error = cudaThreadSynchronize();
 	error = cudaMemcpy(hFlag, dFlag, dim*sizeof(bool), cudaMemcpyDeviceToHost);
 	cout<<"\n\n----------------------------------------------------------------------------------\n\n";
-
-	/*printf("\nMatrix: ");
-	for(int i = 0; i < dim*dim; i++) {
-		if(i % dim == 0) printf("\n");
-		printf("%f ", hMatrix[i]);
-	}*/
 	
 	for(int i = 0; i < dim; ++i)
 		isdiagonalyDominantMatrix = isdiagonalyDominantMatrix && hFlag[i];
@@ -154,17 +147,10 @@ int main(int argc, char **argv)
 		error = cudaThreadSynchronize();
 		error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(T), cudaMemcpyDeviceToHost);		
 
-		/*printf("\n\nVextorB:\n");
-			for(int j = 0; j < dim; j++)
-				printf("%f ", hVectorB[j]);*/
-
 		cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 		
 		cout<<"\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ";
 		cin>>MaxIteraton;
-
-		/*cout<<"Inserire La Base Per Il Calcolo Della Epsilon: ";
-		cin>>base;*/
 
 		cout<<"Inserire L'Esponente Per Il Calcolo Della Epsilon [Es. -12]: ";
 		cin>>esponente;
@@ -179,10 +165,6 @@ int main(int argc, char **argv)
 		{
 			cout<<"\nIterazione N°: "<<i<<endl;
 			
-			/*printf("\n\nVextorX:\n");
-			for(int j = 0; j < dim; j++)
-				printf("%f \n", hVector[j]);*/
-			
 			//Moltiplico La matrice triangolare per il vettore X al passo K
 			cudaEventRecord(gpu_start, 0);
 			moltiplicationMatrixVector<<<NumBlock, NumThread>>>(dim, dTriangularMatrix, dVector, dMoltiplicationResult);
@@ -193,11 +175,6 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hMoltiplicationResult, dMoltiplicationResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			/*printf("\nMoltiplication Triangular Matrix With Vector X^%d:\n", i);
-			for(int j = 0; j < dim; j++)
-				printf("%f \n", hMoltiplicationResult[j]);
-			printf("\n\n");*/
-
 			//Sommo il risultato della precedente moltiplicazione con il vettore B
 			cudaEventRecord(gpu_start, 0);
 			sumVectorVector<<<NumBlock, NumThread>>>(dim, dMoltiplicationResult, dVectorB, dSumVectorResult);
@@ -207,11 +184,6 @@ int main(int argc, char **argv)
 		    cout<<"\nCUDA runtime SumVectorVector: "<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hSumVectorResult, dSumVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
-
-			/*printf("\nSum Previous Vector With Vector B:\n");
-			for(int j = 0; j < dim; j++)
-				printf("%f \n", hSumVectorResult[j]);
-			printf("\n\n");*/
 						
 			//Moltiplico il risultato della precedente somma per il la matrice Diagonale(Trattata come vettore)
 			cudaEventRecord(gpu_start, 0);
@@ -222,11 +194,7 @@ int main(int argc, char **argv)
 		    cout<<"\nCUDA runtime MoltiplicationVectorVector: "<<gpu_runtime<<"ms\n";
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hVectorResult, dVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
-
-			/*printf("\nDiagonal Vector With Previous Vector (X^(%d+1)):\n", i);
-			for(int j = 0; j < dim; j++)
-				printf("%f \n", hVectorResult[j]);*/
-
+			
 			cudaEventRecord(gpu_start, 0);
 			diffVectorVector<<<NumBlock, NumThread>>>(dim, dVectorResult, dVector, dDiffVectorResult);
 			cudaEventRecord(gpu_stop, 0);
@@ -277,57 +245,9 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hVector, dVector, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-			/*printf("\nCopy VectorResult to Vector:\n", i);
-			for(int j = 0; j < dim; j++)
-				printf("%f \n", hVector[j]);*/
-
-
-			cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 			i++;
+			cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 		}
-
-		/*printf("\nTriangular: \n");
-		for(int i = 0; i < dim*dim; i++) {
-			if(i % dim == 0) printf("\n");
-			printf("%f ", hTriangularMatrix[i]);
-		}
-
-		printf("\n");
-
-		printf("\nDiagonal:");
-		for(int i = 0; i < dim; i++) {
-			if(i % dim == 0) printf("\n");
-			printf("%f ", hDiagonalMatrix[i]);
-		}
-
-		printf("\n");
-
-		printf("\nSumVectorResult:\n");
-		for(int i = 0; i < dim; i++)
-			printf("%f ", hSumVectorResult[i]);
-
-		printf("\n");
-		
-		printf("\nMoltiplicationVector:\n");
-		for(int i = 0; i < dim; i++)
-			printf("%f ", hMoltiplicationVector[i]);
-
-
-		/*printf("\nVectorB:\n");
-		for(int i = 0; i < dim; i++)
-			printf("%f ", hVectorB[i]);
-
-		printf("\n");
-		
-		printf("\nVector^%d:\n", i);
-		for(int i = 0; i < dim; i++) {
-			printf("%f \n", hVector[i]);
-		}
-		/*
-		printf("\nMoltiplicationResult:\n");
-		for(int i = 0; i < dim; i++) {
-			printf("%f ", hMoltiplicationResult[i]);
-		}*/
 
 		return 0;
 	}
