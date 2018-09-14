@@ -19,5 +19,5 @@ __global__ void initMatrixSDD(int dim, T* matrix)
 	int offSet = index * dim;
 
 	for(int i = 0; i < dim; ++i)	
-		i != index ? matrix[i + offSet] = 1 : matrix[i + offSet] = 65;
+		i != index ? matrix[i + offSet] = 0.1 : matrix[i + offSet] = dim+1;
 }

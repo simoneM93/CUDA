@@ -10,7 +10,7 @@ int esponente;
 
 int main(int argc, char **argv)
 {
-	int dim = 64;
+	int dim = 1024;
 	int NumBlock = (dim + BlockSize - 1) / BlockSize;
 	int NumThread = BlockSize;
 	float gpu_runtime;
@@ -152,10 +152,10 @@ int main(int argc, char **argv)
 		cout<<"\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ";
 		cin>>MaxIteraton;
 
-		cout<<"Inserire L'Esponente Per Il Calcolo Della Epsilon [Es. -12]: ";
+		cout<<"Inserire L'Esponente Per Il Calcolo Della Epsilon [Es. 12]: ";
 		cin>>esponente;
 
-		epsilon = pow(10, esponente);
+		epsilon = pow(10, -esponente);
 
 		cout<<"L'Epsilon Vale: "<< epsilon<<endl;
 		system("PAUSE");
@@ -195,6 +195,7 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hVectorResult, dVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 			
+			//Calcolo la differenza tra il vettore al passo k+1 e il vettore al passo k
 			cudaEventRecord(gpu_start, 0);
 			diffVectorVector<<<NumBlock, NumThread>>>(dim, dVectorResult, dVector, dDiffVectorResult);
 			cudaEventRecord(gpu_stop, 0);
@@ -204,6 +205,7 @@ int main(int argc, char **argv)
 		    error = cudaThreadSynchronize();
 			error = cudaMemcpy(hDiffVectorResult, dDiffVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
+			//Calcolo la norma due della differenza tra il vettore al passo k+1 e il vettore al passo k
 			cudaEventRecord(gpu_start, 0);
 			normaDue<<<NumBlock, NumThread>>>(dim, dDiffVectorResult, dNormaResult);
 			cudaEventRecord(gpu_stop, 0);
@@ -225,17 +227,18 @@ int main(int argc, char **argv)
 			
 			T divisione = (hNormaResult[0]/hNormaResult2[0]);*/
 
-			cout<<"NormaVector: "<<hNormaResult[0]<<endl;
+			cout<<"NormaVector: "<<sqrt(hNormaResult[0])<<endl;
 			cout<<"L'Epsilon Vale: "<< epsilon<<endl;
 
-			if(hNormaResult[0] < epsilon)
+			if(sqrt(hNormaResult[0]) < epsilon)
 			{	
-				cout<<"\n\n----------------------------------------------------------------------------------\n\n";				
+				cout<<"\n\n----------------------------------------------------------------------------------\n";				
 				cout<<"Criterio Di Arresto Rispettato!";
-				cout<<"\n\n----------------------------------------------------------------------------------\n\n";
+				cout<<"\n----------------------------------------------------------------------------------\n\n";
 				return 0;
 			}
 
+			//Copio il vettore al passo k+1 nel vettore al passo k
 			cudaEventRecord(gpu_start, 0);
 			copyVectorToVector<<<NumBlock, NumThread>>>(dim, dVectorResult, dVector);
 			cudaEventRecord(gpu_stop, 0);
