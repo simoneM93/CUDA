@@ -1,0 +1,3 @@
+HosteName: gpu-cluster2
+Login: studenti
+Password: stage

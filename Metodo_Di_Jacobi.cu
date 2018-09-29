@@ -3,10 +3,11 @@
 
 using namespace std;
 
-const int BlockSize = 8;
+const int BlockSize = 16;
 int MaxIteraton;
-float epsilon;
 int esponente;
+float epsilon;
+float tool;
 
 int main(int argc, char **argv)
 {
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
     T *hVectorResult, *dVectorResult;
     T *hDiffVectorResult, *dDiffVectorResult;
     T *hNormaResult, *dNormaResult;
-    //T *hNormaResult2, *dNormaResult2;
+    T *hNormaB, *dNormaB;
 
 	bool *dFlag, *hFlag;
 	bool isdiagonalyDominantMatrix = true;
@@ -68,6 +69,7 @@ int main(int argc, char **argv)
 	
 	for(int i = 0; i < dim; ++i)
 		isdiagonalyDominantMatrix = isdiagonalyDominantMatrix && hFlag[i];
+	//TODO Riduzione
 
 	if(!isdiagonalyDominantMatrix)
 		cout<<"\nLa matrice NON è Strettamente Diagonalmente Dominante, quindi non converge con il Metodo di Jacobi!\n\n";
@@ -84,7 +86,7 @@ int main(int argc, char **argv)
 		hVectorResult = (T*)malloc(dim*sizeof(T));
 		hDiffVectorResult = (T*)malloc(dim*sizeof(T));
 		hNormaResult = (T*)malloc(1*sizeof(T));
-		//hNormaResult2 = (T*)malloc(1*sizeof(T));
+		hNormaB = (T*)malloc(1*sizeof(T));
 
 		error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(T));
 		check_cuda(error, "Diagonal");
@@ -113,8 +115,8 @@ int main(int argc, char **argv)
 		error = cudaMalloc(&dNormaResult, 1*sizeof(T));
 		check_cuda(error, "NormaResult");
 
-		/*error = cudaMalloc(&dNormaResult2, 1*sizeof(T));
-		check_cuda(error, "NormaResult2");*/
+		error = cudaMalloc(&dNormaB, 1*sizeof(T));
+		check_cuda(error, "NormaB");
 
 		//Divido la matrice in Matrice Diagonale e Matrice Triangolare(Superiore ed Inferiore)
 		cudaEventRecord(gpu_start, 0);
@@ -147,6 +149,16 @@ int main(int argc, char **argv)
 		error = cudaThreadSynchronize();
 		error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(T), cudaMemcpyDeviceToHost);		
 
+		//Calcolo la norma due del Vettore B
+		cudaEventRecord(gpu_start, 0);
+		normaDue<<<NumBlock, NumThread>>>(dim, dVectorB, dNormaB);
+		cudaEventRecord(gpu_stop, 0);
+	    cudaEventSynchronize(gpu_stop);
+	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+	    cout<<"\nCUDA runtime NormaVectorB: "<<gpu_runtime<<"ms\n";
+		error = cudaThreadSynchronize();
+		error = cudaMemcpy(hNormaB, dNormaB, dim*sizeof(T), cudaMemcpyDeviceToHost);	
+
 		cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 		
 		cout<<"\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ";
@@ -157,7 +169,10 @@ int main(int argc, char **argv)
 
 		epsilon = pow(10, -esponente);
 
+		tool = epsilon * hNormaB[0];
+
 		cout<<"L'Epsilon Vale: "<< epsilon<<endl;
+		cout<<"La Tolleranza Vale: "<<tool<<endl;
 		system("PAUSE");
 
 		int i = 0;
@@ -228,9 +243,11 @@ int main(int argc, char **argv)
 			T divisione = (hNormaResult[0]/hNormaResult2[0]);*/
 
 			cout<<"NormaVector: "<<sqrt(hNormaResult[0])<<endl;
-			cout<<"L'Epsilon Vale: "<< epsilon<<endl;
+			cout<<"La Tolleranza Vale: "<<tool<<endl;
 
-			if(sqrt(hNormaResult[0]) < epsilon)
+
+
+			if(sqrt(hNormaResult[0]) < tool )
 			{	
 				cout<<"\n\n----------------------------------------------------------------------------------\n";				
 				cout<<"Criterio Di Arresto Rispettato!";

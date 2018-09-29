@@ -1,6 +1,6 @@
 #include "Type.cu"
 
-__global__ void sumVectorVector(int dim, T* vector1, T* vector2, T* result)
+__global__ void sumVectorVector(int dim, const T* __restrict__ vector1, const T* __restrict__ vector2, T* result)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 

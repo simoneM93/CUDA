@@ -1,6 +1,6 @@
 #include "Type.cu"
 
-__global__ void matrixDivision(int dim, T* matrixA, T* diagonalMatrix, T*  triangularMatrix)
+__global__ void matrixDivision(int dim, const T* __restrict__ matrixA, T* diagonalMatrix, T*  triangularMatrix)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 	int offSet = index * dim;

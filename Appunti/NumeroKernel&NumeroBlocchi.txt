@@ -1,0 +1,2 @@
+NumBlock = (dim + blocksize -1)/blocksize
+NumKernel = blocksize
