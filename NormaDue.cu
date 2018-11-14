@@ -3,10 +3,9 @@
 __global__ void normaDue(int dim, const T* __restrict__ vettore, T *result)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
-	int i = 0;
+
 	if (index > dim)
 		return;
 
-	result[i] += vettore[index] * vettore[index];
-	//TODO Riduzione
+	result[index] = vettore[index] * vettore[index];
 }

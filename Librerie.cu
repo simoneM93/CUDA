@@ -22,3 +22,4 @@
 #include "NormaDue.cu" //Calcola la Norma Due di un vettore
 #include "Check_Cuda.cu" //Errori
 #include "CopyVectorToVector.cu" //Copia un vettore in un altro vettore
+#include "Reduce.cu"
