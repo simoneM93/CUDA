@@ -101,10 +101,10 @@ int main(int argc, char **argv)
 	hVectorResult = (T*)malloc(dim*sizeof(T));
 	hDiffVectorResult = (T*)malloc(dim*sizeof(T));
 	hNormaResult = (T*)malloc(dim*sizeof(T));
-	hNormaB = (T*)malloc(1*sizeof(T));
+	hNormaB = (T*)malloc(dim*sizeof(T));
 	hNormaReduce = (T*)malloc(dim*sizeof(T));
 	//hReduce = (T*)malloc(dim*sizeof(T));
-	
+
 
 	error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(T));
 	check_cuda(error, "Diagonal");
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 	error = cudaMalloc(&dNormaResult, dim*sizeof(T));
 	check_cuda(error, "NormaResult");
 
-	error = cudaMalloc(&dNormaB, 1*sizeof(T));
+	error = cudaMalloc(&dNormaB, dim*sizeof(T));
 	check_cuda(error, "NormaB");
 
 	error = cudaMalloc(&dNormaReduce, dim*sizeof(T));
@@ -253,11 +253,11 @@ int main(int argc, char **argv)
 
 		cout<<"Norma2Vector:\n";
 		for(int j = 0; j < dim; j++)
-			cout<<hDiffVectorResult[i]<<" ";
+			cout<<hDiffVectorResult[j]<<" ";
 
 		cout<<"\nNorma2:\n";
 		for(int j = 0; j < dim; j++)
-			cout<<hNormaResult[i]<<" ";
+			cout<<hNormaResult[j]<<" ";
 
 		T sum = 0;
 
