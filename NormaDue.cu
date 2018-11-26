@@ -8,5 +8,4 @@ __global__ void normaDue(int dim, const T* __restrict__ vettore, T *result)
 		return;
 
 	result[index] = vettore[index] * vettore[index];
-	printf("vectoN[index]:%g, result[index]:%g, index:%i\n", vettore[index], result[index],index);
 }

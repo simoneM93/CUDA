@@ -16,8 +16,7 @@ __global__ void initMatrixSDD(int dim, T* matrix)
 {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-	int offSet = index * dim;
+	if(index > dim*dim) return;
 
-	for(int i = 0; i < dim; ++i)	
-		i != index ? matrix[i + offSet] = 0.1 : matrix[i + offSet] = dim+1;
+	index == ((index/dim)*(dim+1)) ? matrix[index]=15.0 : matrix[index]=0.1;
 }

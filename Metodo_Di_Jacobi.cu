@@ -11,8 +11,8 @@ float tool;
 
 int main(int argc, char **argv)
 {
-	int dim = 64;
-	int NumBlock = (dim + BlockSize - 1) / BlockSize;
+	int dim = 4096;
+	int NumBlock = ((dim*dim) + BlockSize - 1) / BlockSize;
 	int NumThread = BlockSize;
 	float gpu_runtime;
 
@@ -30,12 +30,12 @@ int main(int argc, char **argv)
 	T *hMoltiplicationResult, *dMoltiplicationResult;
     T *hSumVectorResult, *dSumVectorResult;
     T *hDiagonalMatrix, *dDiagonalMatrix;
-    T *hTriangularMatrix, *dTriangularMatrix;
     T *hVectorResult, *dVectorResult;
     T *hDiffVectorResult, *dDiffVectorResult;
     T *hNormaResult, *dNormaResult;
     T *hNormaB, *dNormaB;
-    T *hNormaReduce, *dNormaReduce;
+    T *dNormaReduce;
+    T *dNormaReduceB;
 
     bool *dReduce;
 	bool *dFlag, *hFlag;
@@ -53,9 +53,7 @@ int main(int argc, char **argv)
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
     cout<<"\nCUDA runtime InitMatrix: "<<gpu_runtime<<"ms\n";
 	error = cudaThreadSynchronize();
-	error = cudaMemcpy(hMatrix, dMatrix, dim*dim*sizeof(T), cudaMemcpyDeviceToHost);
-	error = cudaThreadSynchronize();
-
+	
 	hFlag = (bool*)malloc(dim*sizeof(bool));
 	error = cudaMalloc(&dFlag, dim*sizeof(bool));
 	check_cuda(error, "Flag");
@@ -64,6 +62,7 @@ int main(int argc, char **argv)
 	check_cuda(error, "Flag");
 
 	//Verifico che la Matrice sia Strettamente Diagonalmente Dominante (Condizione Sufficiente per la convergenza del Metodo di Jacobi)
+	NumBlock = (dim + BlockSize - 1) / BlockSize;
 	cudaEventRecord(gpu_start, 0);
 	diagonalyDominantMatrix<<<NumBlock, NumThread>>>(dim, dMatrix, dFlag);
 	cudaEventRecord(gpu_stop, 0);
@@ -76,7 +75,8 @@ int main(int argc, char **argv)
 
 	cudaEventRecord(gpu_start, 0);
 	reduction<<<NumBlock, BlockSize, NumThread>>>(dFlag, dReduce, dim);
-	reduction<<<1, BlockSize, NumThread>>>(dReduce, dReduce, NumBlock);
+	if(NumBlock != 1)
+		reduction<<<1, BlockSize, NumThread>>>(dReduce, dReduce, NumBlock);
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
@@ -93,7 +93,6 @@ int main(int argc, char **argv)
 	cout<<"\nLa matrice è Strettamente Diagonalmente Dominante!\n\n";
 
 	hDiagonalMatrix = (T*)malloc(dim*sizeof(T));
-	hTriangularMatrix = (T*)malloc(dim*dim*sizeof(T));
 	hVector = (T*)malloc(dim*sizeof(T));
 	hVectorB = (T*)malloc(dim*sizeof(T));
 	hMoltiplicationResult = (T*)malloc(dim*sizeof(T));
@@ -102,15 +101,9 @@ int main(int argc, char **argv)
 	hDiffVectorResult = (T*)malloc(dim*sizeof(T));
 	hNormaResult = (T*)malloc(dim*sizeof(T));
 	hNormaB = (T*)malloc(dim*sizeof(T));
-	hNormaReduce = (T*)malloc(dim*sizeof(T));
-	//hReduce = (T*)malloc(dim*sizeof(T));
-
 
 	error = cudaMalloc(&dDiagonalMatrix, dim*sizeof(T));
 	check_cuda(error, "Diagonal");
-
-	error = cudaMalloc(&dTriangularMatrix, dim*dim*sizeof(T));
-	check_cuda(error, "Triangular");
 
 	error = cudaMalloc(&dVector, dim*sizeof(T));
 	check_cuda(error, "Vector");
@@ -139,17 +132,18 @@ int main(int argc, char **argv)
 	error = cudaMalloc(&dNormaReduce, dim*sizeof(T));
 	check_cuda(error, "NormaReduce");
 
+	error = cudaMalloc(&dNormaReduceB, dim*sizeof(T));
+	check_cuda(error, "NormaReduce");
+
 	//Divido la matrice in Matrice Diagonale e Matrice Triangolare(Superiore ed Inferiore)
 	cudaEventRecord(gpu_start, 0);
-	matrixDivision<<<NumBlock, NumThread>>>(dim, dMatrix, dDiagonalMatrix, dTriangularMatrix);
+	matrixDivision<<<NumBlock, NumThread>>>(dim, dMatrix, dDiagonalMatrix/*, dTriangularMatrix*/);
 	cudaEventRecord(gpu_stop, 0);
     cudaEventSynchronize(gpu_stop);
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
     cout<<"\nCUDA runtime MatrixDivision: "<<gpu_runtime<<"ms\n";
 	error = cudaThreadSynchronize();
-	error = cudaMemcpy(hTriangularMatrix, dTriangularMatrix, dim*dim*sizeof(T), cudaMemcpyDeviceToHost);
-	error = cudaMemcpy(hDiagonalMatrix, dDiagonalMatrix, dim*sizeof(T), cudaMemcpyDeviceToHost);		
-
+	
 	//Inizializzo Il primo Vettore X al passo 0
 	cudaEventRecord(gpu_start, 0);
 	initVector<<<NumBlock, NumThread>>>(dim, dVector);
@@ -158,8 +152,7 @@ int main(int argc, char **argv)
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
     cout<<"\nCUDA runtime InitVectorX: "<<gpu_runtime<<"ms\n";
 	error = cudaThreadSynchronize();
-	error = cudaMemcpy(hVector, dVector, dim*sizeof(T), cudaMemcpyDeviceToHost);		
-
+	
 	//Inizializzo il Vettore B
 	cudaEventRecord(gpu_start, 0);
 	initVectorWithIndex<<<NumBlock, NumThread>>>(dim, dVectorB);
@@ -168,8 +161,7 @@ int main(int argc, char **argv)
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
     cout<<"\nCUDA runtime InitVectorB: "<<gpu_runtime<<"ms\n";
 	error = cudaThreadSynchronize();
-	error = cudaMemcpy(hVectorB, dVectorB, dim*sizeof(T), cudaMemcpyDeviceToHost);		
-
+	
 	//Calcolo la norma due del Vettore B
 	cudaEventRecord(gpu_start, 0);
 	normaDue<<<NumBlock, NumThread>>>(dim, dVectorB, dNormaB);
@@ -178,38 +170,57 @@ int main(int argc, char **argv)
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
     cout<<"\nCUDA runtime NormaVectorB: "<<gpu_runtime<<"ms\n";
 	error = cudaThreadSynchronize();
-	error = cudaMemcpy(hNormaB, dNormaB, dim*sizeof(T), cudaMemcpyDeviceToHost);	
+
+	T sumB = 0;
+
+	cudaEventRecord(gpu_start, 0);
+		reductionT<<<NumBlock, BlockSize, NumThread*sizeof(T)>>>(dNormaB, dNormaReduceB, dim);
+		if(NumBlock != 1)
+			reductionT<<<1, BlockSize, NumThread*sizeof(T)>>>(dNormaReduceB, dNormaReduceB, NumBlock);
+		cudaEventRecord(gpu_stop, 0);
+	    cudaEventSynchronize(gpu_stop);
+	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+	    cout<<"\nCUDA runtime ReductionNormaVector: "<<gpu_runtime<<"ms\n";
+	    error = cudaThreadSynchronize();
+		error= cudaMemcpy(&sumB, dNormaReduceB, sizeof(T), cudaMemcpyDeviceToHost);	
+
+	cout<<"SumB: "<<sumB<<"\n";
 
 	cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 	
 	cout<<"\nInserire Massimo Numeri Di Iterazioni Da Eseguire: ";
 	cin>>MaxIteraton;
+	//MaxIteraton	= 10;
 
 	cout<<"Inserire L'Esponente Per Il Calcolo Della Epsilon [Es. 12]: ";
 	cin>>esponente;
 
-	epsilon = pow(10, -esponente);
+	//esponente = 3;
 
-	tool = epsilon * hNormaB[0];
+	int esp = esponente > 0 ? -esponente : esponente;
+	cout<<"Esp: "<<esp<<"\n";
+
+	epsilon = pow(10.0, esp);
+
+	tool = epsilon * sumB;
 
 	cout<<"L'Epsilon Vale: "<< epsilon<<endl;
 	cout<<"La Tolleranza Vale: "<<tool<<endl;
 	system("PAUSE");
 
-	int i = 0;
-	while(i < MaxIteraton)
+	int numIteration = 0;
+	while(numIteration < MaxIteraton)
 	{
-		cout<<"\nIterazione N°: "<<i<<endl;
+		cout<<"\nIterazione N°: "<<numIteration<<endl;
 		
 		//Moltiplico La matrice triangolare per il vettore X al passo K
 		cudaEventRecord(gpu_start, 0);
-		moltiplicationMatrixVector<<<NumBlock, NumThread>>>(dim, dTriangularMatrix, dVector, dMoltiplicationResult);
+		moltiplicationMatrixVector<<<NumBlock, NumThread>>>(dim, dMatrix, dVector, dMoltiplicationResult);
 		cudaEventRecord(gpu_stop, 0);
 	    cudaEventSynchronize(gpu_stop);
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    cout<<"\nCUDA runtime MoltiplicationMatrixVector: "<<gpu_runtime<<"ms\n";
 	    error = cudaThreadSynchronize();
-		error = cudaMemcpy(hMoltiplicationResult, dMoltiplicationResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
 		//Sommo il risultato della precedente moltiplicazione con il vettore B
 		cudaEventRecord(gpu_start, 0);
@@ -219,8 +230,7 @@ int main(int argc, char **argv)
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    cout<<"\nCUDA runtime SumVectorVector: "<<gpu_runtime<<"ms\n";
 	    error = cudaThreadSynchronize();
-		error = cudaMemcpy(hSumVectorResult, dSumVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
-					
+
 		//Moltiplico il risultato della precedente somma per il la matrice Diagonale(Trattata come vettore)
 		cudaEventRecord(gpu_start, 0);
 		moltiplicationVectorVector<<<NumBlock, NumThread>>>(dim, dDiagonalMatrix, dSumVectorResult, dVectorResult);
@@ -229,7 +239,6 @@ int main(int argc, char **argv)
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    cout<<"\nCUDA runtime MoltiplicationVectorVector: "<<gpu_runtime<<"ms\n";
 	    error = cudaThreadSynchronize();
-		error = cudaMemcpy(hVectorResult, dVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 		
 		//Calcolo la differenza tra il vettore al passo k+1 e il vettore al passo k
 		cudaEventRecord(gpu_start, 0);
@@ -239,25 +248,31 @@ int main(int argc, char **argv)
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    cout<<"\nCUDA runtime DiffVectorVector: "<<gpu_runtime<<"ms\n";
 	    error = cudaThreadSynchronize();
-		error = cudaMemcpy(hDiffVectorResult, dDiffVectorResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
-
+		
 		//Calcolo la norma due della differenza tra il vettore al passo k+1 e il vettore al passo k
 		cudaEventRecord(gpu_start, 0);
 		normaDue<<<NumBlock, NumThread>>>(dim, dDiffVectorResult, dNormaResult);
 		cudaEventRecord(gpu_stop, 0);
 	    cudaEventSynchronize(gpu_stop);
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    cout<<"\nCUDA runtime NormaDue Di x^("<<i<<") - x^("<<i-1<<"): "<<gpu_runtime<<"ms\n";
+	    cout<<"\nCUDA runtime NormaDue Di x^("<<numIteration<<") - x^("<<numIteration-1<<"): "<<gpu_runtime<<"ms\n";
 	    error = cudaThreadSynchronize();
 		error = cudaMemcpy(hNormaResult, dNormaResult, dim*sizeof(T), cudaMemcpyDeviceToHost);
 
-		cout<<"Norma2Vector:\n";
+		/*cout<<"Norma2Vector:\n";
 		for(int j = 0; j < dim; j++)
 			cout<<hDiffVectorResult[j]<<" ";
 
 		cout<<"\nNorma2:\n";
 		for(int j = 0; j < dim; j++)
-			cout<<hNormaResult[j]<<" ";
+			cout<<hNormaResult[j]<<" ";*/
+
+		T sumIterative = 0;
+		cout<<"\n";
+		for(int j = 0; j < dim; j++) {
+			sumIterative +=hNormaResult[j];
+			//cout<<"SumIterative: "<<sumIterative<<", Iteration: "<<j<<"\n";
+		}
 
 		T sum = 0;
 
@@ -273,6 +288,7 @@ int main(int argc, char **argv)
 		error= cudaMemcpy(&sum, dNormaReduce, sizeof(T), cudaMemcpyDeviceToHost);
 
 		cout<<"Sum: "<<sum<<"\n";
+		cout<<"SumIterative: "<<sumIterative<<"\n";
 
 		if(sum < tool )
 		{	
@@ -290,9 +306,8 @@ int main(int argc, char **argv)
 	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
 	    cout<<"\nCUDA runtime CopyVectorToVector: "<<gpu_runtime<<"ms\n";
 	    error = cudaThreadSynchronize();
-		error = cudaMemcpy(hVector, dVector, dim*sizeof(T), cudaMemcpyDeviceToHost);
-
-		i++;
+	    
+		numIteration++;
 		cout<<"\n\n----------------------------------------------------------------------------------\n\n";
 	}
 

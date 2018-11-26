@@ -7,17 +7,17 @@ __global__ void reduction(const bool *vec, bool *vec2, int numels)
 
 	extern __shared__ bool shmem[];
 
-	shmem[threadIdx.x] = 0;
+	shmem[threadIdx.x] = 1;
 
 	while(i < numels) {
-		shmem[threadIdx.x] += vec[i];
+		shmem[threadIdx.x] &= vec[i];
 		i += blockDim.x*gridDim.x;
 	}
 
 	for (int c = blockDim.x/2; c > 0; c/=2) {
 		__syncthreads();
 		if (threadIdx.x < c)
-			shmem[threadIdx.x] += shmem[threadIdx.x + c];
+			shmem[threadIdx.x] &= shmem[threadIdx.x + c];
 	}
 
 	if (threadIdx.x == 0)
@@ -34,8 +34,8 @@ __global__ void reductionT(const T *vec, T *vec2, int numels)
 
 	while(index < numels) {
 		shmemT[threadIdx.x] += vec[index];
-		if(threadIdx.x == 0) 
-		printf("vec[index]:%g, shmem:%g\n", vec[index], shmemT[threadIdx.x]);
+		//if(threadIdx.x == 0) 
+		//printf("vec[index]:%g, shmem:%g\n", vec[index], shmemT[threadIdx.x]);
 		index += blockDim.x*gridDim.x;
 		
 	}
@@ -50,6 +50,6 @@ __global__ void reductionT(const T *vec, T *vec2, int numels)
 		vec2[blockIdx.x] = shmemT[threadIdx.x];
 	
 
-		printf("Vec: %g, block:%i, numels:%i\n", vec2[blockIdx.x], blockIdx.x, numels);
+		//printf("Vec: %g, block:%i, numels:%i\n", vec2[blockIdx.x], blockIdx.x, numels);
 	}
 }

@@ -9,7 +9,8 @@ __global__ void moltiplicationMatrixVector(int dim, const T* __restrict__ matrix
 		return;
 
 	for(int i = 0; i < dim; i++) 
-		result[index] += matrix[i + offSet] * vector[i];
+		if(i != index) 
+			result[index] += matrix[i + offSet] * vector[i];
 }
 
 __global__ void moltiplicationVectorVector(int dim, const T* __restrict__ vector1, const T* __restrict__ vector2, T* result)
@@ -20,5 +21,4 @@ __global__ void moltiplicationVectorVector(int dim, const T* __restrict__ vector
 		return;
 
 	result[index] = vector1[index] * vector2[index];
-	printf("vecto1D[index]:%g, vecto2D[index]:%g, resultD[index]:%g, index:%i\n", vector1[index], vector2[index], result[index], index);
 }
