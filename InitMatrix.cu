@@ -18,5 +18,5 @@ __global__ void initMatrixSDD(int dim, T* matrix)
 
 	if(index > dim*dim) return;
 
-	index == ((index/dim)*(dim+1)) ? matrix[index]=15.0 : matrix[index]=0.1;
+	index == ((index/dim)*(dim+1)) ? matrix[index]=1500.0 : matrix[index]=0.1;
 }

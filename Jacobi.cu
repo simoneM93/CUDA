@@ -3,10 +3,10 @@
 
 using namespace std;
 
-const int BlockSize = 16;
+const int BlockSize = 1024;
 int MaxIteraton = 10;
 int esponente = 3;
-int dim = 1024;
+int dim = 4096;
 int numThread = BlockSize;
 int numBlock;
 float epsilon;
