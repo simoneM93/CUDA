@@ -24,7 +24,7 @@ __global__ void reduction(const bool *vec, bool *vec2, int numels)
 		vec2[blockIdx.x] = shmem[threadIdx.x];
 }
 
-__global__ void reductionT(const T *vec, T *vec2, int numels)
+__global__ void reductionQuadratoT(const T *vec, T *vec2, int numels)
 {
 	int index = threadIdx.x + blockDim.x*blockIdx.x;
 
@@ -32,10 +32,10 @@ __global__ void reductionT(const T *vec, T *vec2, int numels)
 
 	shmemT[threadIdx.x] = 0;
 
+	T tmp = vec[index];
+
 	while(index < numels) {
-		shmemT[threadIdx.x] += vec[index];
-		//if(threadIdx.x == 0) 
-		//printf("vec[index]:%g, shmem:%g\n", vec[index], shmemT[threadIdx.x]);
+		shmemT[threadIdx.x] += tmp * tmp;
 		index += blockDim.x*gridDim.x;
 		
 	}
@@ -48,8 +48,57 @@ __global__ void reductionT(const T *vec, T *vec2, int numels)
 
 	if (threadIdx.x == 0){
 		vec2[blockIdx.x] = shmemT[threadIdx.x];
-	
+	}
+}
 
-		//printf("Vec: %g, block:%i, numels:%i\n", vec2[blockIdx.x], blockIdx.x, numels);
+__global__ void reductionDiffT(T *vec, T* vec1, T *vec2, int numels)
+{
+	int index = threadIdx.x + blockDim.x*blockIdx.x;
+
+	extern __shared__ T shmemT[];
+
+	shmemT[threadIdx.x] = 0;
+	
+	T diffVector = vec[index] - vec1[index];
+
+	while(index < numels) {
+		shmemT[threadIdx.x] += diffVector * diffVector;
+		index += blockDim.x*gridDim.x;
+		
+	}
+
+	for (int c = blockDim.x/2; c > 0; c/=2) {
+		__syncthreads();
+		if (threadIdx.x < c)
+			shmemT[threadIdx.x] += shmemT[threadIdx.x + c];
+	}
+
+	if (threadIdx.x == 0){
+		vec2[blockIdx.x] = shmemT[threadIdx.x];
+	}
+}
+
+__global__ void reductionT(const T *vec, T *vec2, int numels)
+{
+	int index = threadIdx.x + blockDim.x*blockIdx.x;
+
+	extern __shared__ T shmemT[];
+
+	shmemT[threadIdx.x] = 0;
+
+	while(index < numels) {
+		shmemT[threadIdx.x] += vec[index];
+		index += blockDim.x*gridDim.x;
+		
+	}
+
+	for (int c = blockDim.x/2; c > 0; c/=2) {
+		__syncthreads();
+		if (threadIdx.x < c)
+			shmemT[threadIdx.x] += shmemT[threadIdx.x + c];
+	}
+
+	if (threadIdx.x == 0){
+		vec2[blockIdx.x] = shmemT[threadIdx.x];
 	}
 }

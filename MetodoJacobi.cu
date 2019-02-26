@@ -160,33 +160,14 @@ int main()
     for(int numIteration = 0; numIteration < MaxIteraton; numIteration++)
 	{
 		cout<<"\nIterazione N°: "<<numIteration<<endl;
-
-    #//Moltiplico La matrice triangolare per il vettore X al passo K
-		cudaEventRecord(gpu_start, 0);
-		moltiplicationMatrixVector<<<numBlock, numThread>>>(dim, deviceMatrix, deviceVectorX, deviceMoltiplicationResult);
-		cudaEventRecord(gpu_stop, 0);
-	    cudaEventSynchronize(gpu_stop);
-	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    cout<<"\nCUDA runtime MoltiplicationMatrixVector: "<<gpu_runtime<<"ms\n";
+    #//Calcolo il vettore X al passo K+1
+        cudaEventRecord(gpu_start, 0);
+        JacobiOperation<<<numBlock, numThread>>>(dim, deviceMatrix, deviceDiagonalMatrix, deviceVectorX, deviceVectorB, deviceVectorResult);
+        cudaEventRecord(gpu_stop, 0);
+        cudaEventSynchronize(gpu_stop);
+        cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+        cout<<"\nCUDA runtime JacobiOperation: "<<gpu_runtime<<"ms\n";
         error = cudaThreadSynchronize();
-        
-    #//Sommo il risultato della precedente moltiplicazione con il vettore B
-		cudaEventRecord(gpu_start, 0);
-		sumVectorVector<<<numBlock, numThread>>>(dim, deviceMoltiplicationResult, deviceVectorB, deviceSumVectorResult);
-		cudaEventRecord(gpu_stop, 0);
-	    cudaEventSynchronize(gpu_stop);
-	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    cout<<"\nCUDA runtime SumVectorVector: "<<gpu_runtime<<"ms\n";
-        error = cudaThreadSynchronize();
-        
-    #//Moltiplico il risultato della precedente somma per il la matrice Diagonale(Trattata come vettore)
-		cudaEventRecord(gpu_start, 0);
-		moltiplicationVectorVector<<<numBlock, numThread>>>(dim, deviceDiagonalMatrix, deviceSumVectorResult, deviceVectorResult);
-		cudaEventRecord(gpu_stop, 0);
-	    cudaEventSynchronize(gpu_stop);
-	    cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-	    cout<<"\nCUDA runtime MoltiplicationVectorVector: "<<gpu_runtime<<"ms\n";
-        error = cudaThreadSynchronize();    
         
     #//Calcolo la norma due della differenza tra il vettore al passo k+1 e il vettore al passo k        
         T norma = 0;

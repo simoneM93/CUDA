@@ -23,3 +23,4 @@
 #include "Check_Cuda.cu" //Errori
 #include "CopyVectorToVector.cu" //Copia un vettore in un altro vettore
 #include "Reduce.cu"//Riduzione
+#include "JacobiOperation.cu"

@@ -1,0 +1,8 @@
+- MetodoJacobi.cu contiene il codice per la risoluzione del sistema unificato in un unico kernel.
+- Jacobi.cu contiene il codice per la risoluzione del sistema diviso in più kernel.
+- Metodo_Di_Jacobi.cu contiene una vecchia versione in cui na norma veniva calcolata separatamente (un kernel calcolava il quadrato degli elementi 
+    e un altro kernel effettuava la riduzione).
+- JacobiOperation.cu contiene l'implementazione del kernel che effettua la risoluzione del sistema lineare.
+
+La creazione del vettore contenente la diagolane della matrice ora avviene all'interno del kernel DiagonalyDominantMatrix, mentre in precedenza
+avveniva in un kernel separato.
