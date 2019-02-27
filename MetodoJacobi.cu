@@ -76,6 +76,8 @@ int main()
 	check_cuda(error, "deviceNormaReduce");
     
 #//Inizializzo la matrice iniziale
+    
+	check_cuda(error, "Matrix");
     cudaEventRecord(gpu_start, 0);
 	initMatrixSDD<<<numBlock, numThread>>>(dim, deviceMatrix);
 	cudaEventRecord(gpu_stop, 0);

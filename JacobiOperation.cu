@@ -7,11 +7,15 @@ __global__ void JacobiOperation(const int dim, const T* __restrict__ matrix, con
     int offSet = index * dim;
 
 	if(index > dim)
-		return;
+        return;
+        
+    for(int i = 0; i < dim; i++) 
+        if(i != index) 
+            result[index] += matrix[index + (i*dim)] * vectorX[index];
 
-	for(int i = 0; i < dim; i++) 
+	/*for(int i = 0; i < dim; i++) 
 		if(i != index) 
-            result[index] += matrix[i + offSet] * vectorX[i];
+            result[index] += matrix[i + offSet] * vectorX[i];*/
     
     result[index] = (result[index] + vectorB[index]) * diagonalyMatrix[index];
 }
