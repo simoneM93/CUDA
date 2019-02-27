@@ -4,7 +4,7 @@
 using namespace std;
 
 const int BlockSize = 1024;
-int MaxIteraton = 10;
+int MaxIteraton = 20;
 int esponente = 3;
 int dim = 4096;
 int numThread = BlockSize;
@@ -66,8 +66,8 @@ int main()
     check_cuda(error, "deviceMoltiplicationResult");
     error = cudaMalloc(&deviceSumVectorResult, dim * sizeof(T));
     check_cuda(error, "deviceSumVectorResult");
-    error = cudaMalloc(&deviceVectorResult, dim * sizeof(T));
-    check_cuda(error, "deviceVectorResult");
+    // error = cudaMalloc(&deviceVectorResult, dim * sizeof(T));
+    // check_cuda(error, "deviceVectorResult");
     error = cudaMalloc(&deviceDiffVectorResult, dim * sizeof(T));
     check_cuda(error, "deviceDiffVectorResult");
     error = cudaMalloc(&deviceNormaResult, dim * sizeof(T));
@@ -161,6 +161,9 @@ int main()
 #//Inizio delle iterazioni
     for(int numIteration = 0; numIteration < MaxIteraton; numIteration++)
 	{
+        error = cudaMalloc(&deviceVectorResult, dim * sizeof(T));
+        check_cuda(error, "deviceVectorResult");
+        
 		cout<<"\nIterazione N°: "<<numIteration<<endl;
     #//Calcolo il vettore X al passo K+1
         cudaEventRecord(gpu_start, 0);
@@ -200,13 +203,20 @@ int main()
         }
         
     #//Copio il vettore al passo k+1 nel vettore al passo k
-        cudaEventRecord(gpu_start, 0);
-        copyVectorToVector<<<numBlock, numThread>>>(dim, deviceVectorResult, deviceVectorX);
-        cudaEventRecord(gpu_stop, 0);
-        cudaEventSynchronize(gpu_stop);
-        cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
-        cout<<"\nCUDA runtime CopyVectorToVector: "<<gpu_runtime<<"ms\n";
-        error = cudaThreadSynchronize();    
+        // T* hVectorX;
+        // hVectorX = (T*)malloc(dim*sizeof(T));
+        // cudaEventRecord(gpu_start, 0);
+        // copyVectorToVector<<<numBlock, numThread>>>(dim, deviceVectorResult, deviceVectorX);
+        // cudaEventRecord(gpu_stop, 0);
+        // cudaEventSynchronize(gpu_stop);
+        // cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
+        // cout<<"\nCUDA runtime CopyVectorToVector: "<<gpu_runtime<<"ms\n";
+        // error = cudaThreadSynchronize();    
+        deviceVectorX = deviceVectorResult;
+        // error = cudaMemcpy(hVectorX, deviceVectorX, dim*sizeof(T), cudaMemcpyDeviceToHost);
+        
+        //for(int i=0; i<dim;i++) cout<<hVectorX[i]<<" ";
+
         
         cout<<"-----------------------------------------------------------------"<<endl;
     }

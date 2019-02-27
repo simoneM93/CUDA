@@ -4,7 +4,7 @@
 using namespace std;
 
 const int BlockSize = 1024;
-int MaxIteraton = 10;
+int MaxIteraton = 20;
 int esponente = 3;
 int dim = 4096;
 int numThread = BlockSize;

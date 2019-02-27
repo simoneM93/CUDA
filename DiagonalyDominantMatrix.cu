@@ -14,16 +14,16 @@ __global__ void diagonalyDominantMatrix(int dim, const T* __restrict__ matrix, T
 	int diagonalElements = absV(matrix[index * dim + index]);
 
 	int sum = 0;
-	//int offSet = index * dim;
+	// int offSet = index * dim;
 
 	for (int i = 0; i < dim; i++) 
 		if(i!=index)
 			sum += absV(matrix[index + (i*dim)]);
 
-	/*for(int i = 0; i < dim; i++){
-		if(i != index)
-			sum += absV(matrix[i + offSet]);
-	}*/
+	// for(int i = 0; i < dim; i++){
+	// 	if(i != index)
+	// 		sum += absV(matrix[i + offSet]);
+	// }
 	
 	flag[index] = sum < diagonalElements ? true : false;		
 }

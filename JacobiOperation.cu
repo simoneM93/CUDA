@@ -4,18 +4,18 @@ __global__ void JacobiOperation(const int dim, const T* __restrict__ matrix, con
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    int offSet = index * dim;
+    // int offSet = index * dim;
 
 	if(index > dim)
         return;
         
     for(int i = 0; i < dim; i++) 
         if(i != index) 
-            result[index] += matrix[index + (i*dim)] * vectorX[index];
+            result[index] += matrix[index + (i*dim)] * vectorX[i];
 
-	/*for(int i = 0; i < dim; i++) 
-		if(i != index) 
-            result[index] += matrix[i + offSet] * vectorX[i];*/
+	// for(int i = 0; i < dim; i++) 
+	// 	if(i != index) 
+    //         result[index] += matrix[i + offSet] * vectorX[i];
     
     result[index] = (result[index] + vectorB[index]) * diagonalyMatrix[index];
 }
