@@ -92,7 +92,6 @@ int main()
     error = cudaMalloc(&deviceReduce, dim*sizeof(bool));
     check_cuda(error, "Flag");
 #//Verifico che la Matrice sia Strettamente Diagonalmente Dominante (Condizione Sufficiente per la convergenza del Metodo di Jacobi)
-    numBlock = (dim + BlockSize - 1) / BlockSize;
     cudaEventRecord(gpu_start, 0);
 	diagonalyDominantMatrix<<<numBlock, numThread>>>(dim, deviceMatrix, deviceDiagonalMatrix, deviceFlag);
 	cudaEventRecord(gpu_stop, 0);
@@ -100,6 +99,8 @@ int main()
     cudaEventElapsedTime(&gpu_runtime, gpu_start, gpu_stop);
     cout<<"\nCUDA runtime DiagonalyDominantMatrix: "<<gpu_runtime<<"ms\n";
 	error = cudaThreadSynchronize();
+    
+    numBlock = (dim + BlockSize - 1) / BlockSize;
 
     cudaEventRecord(gpu_start, 0);
 	reduction<<<numBlock, BlockSize, numThread>>>(deviceFlag, deviceReduce, dim);
@@ -135,6 +136,7 @@ int main()
     
 #//Calcolo la norma due del Vettore B
     T normaB = 0.0;
+    numBlock = (dim + BlockSize - 1) / BlockSize;
 
 	cudaEventRecord(gpu_start, 0);
     reductionQuadratoT<<<numBlock, BlockSize, numThread * sizeof(T)>>>(deviceNormaB, deviceNormaReduceB, dim);
@@ -176,6 +178,7 @@ int main()
         
     #//Calcolo la norma due della differenza tra il vettore al passo k+1 e il vettore al passo k        
         T norma = 0;
+        numBlock = (dim + BlockSize - 1) / BlockSize;
 
         cudaEventRecord(gpu_start, 0);
 		reductionDiffT<<<numBlock, BlockSize, numThread * sizeof(T)>>>(deviceVectorResult, deviceVectorX, deviceNormaReduce, dim);

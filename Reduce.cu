@@ -24,7 +24,7 @@ __global__ void reduction(const bool *vec, bool *vec2, int numels)
 		vec2[blockIdx.x] = shmem[threadIdx.x];
 }
 
-__global__ void reductionQuadratoT(const T *vec, T *vec2, int numels)
+__global__ void reductionQuadratoT(const T* __restrict__ vec, T *vec2, int numels)
 {
 	int index = threadIdx.x + blockDim.x*blockIdx.x;
 
@@ -51,7 +51,7 @@ __global__ void reductionQuadratoT(const T *vec, T *vec2, int numels)
 	}
 }
 
-__global__ void reductionDiffT(T *vec, T* vec1, T *vec2, int numels)
+__global__ void reductionDiffT(const T* __restrict__ vec, const T* __restrict__ vec1, T *vec2, int numels)
 {
 	int index = threadIdx.x + blockDim.x*blockIdx.x;
 
@@ -78,7 +78,7 @@ __global__ void reductionDiffT(T *vec, T* vec1, T *vec2, int numels)
 	}
 }
 
-__global__ void reductionT(const T *vec, T *vec2, int numels)
+__global__ void reductionT(const T* __restrict__ vec, T *vec2, int numels)
 {
 	int index = threadIdx.x + blockDim.x*blockIdx.x;
 
