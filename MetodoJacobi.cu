@@ -3,7 +3,7 @@
 
 using namespace std;
 
-const int BlockSize = 1024;
+const int BlockSize = 512;
 int MaxIteraton = 20;
 int esponente = 3;
 int dim = 4096;
@@ -192,6 +192,7 @@ int main()
 		error= cudaMemcpy(&norma, deviceNormaReduce, sizeof(T), cudaMemcpyDeviceToHost);
         
         cout<<"\n-----------------------------------------------------------------"<<endl;
+        cout<<"\n-----------------------------------------------------------------"<<endl;        
         cout<<"Norma: "<<norma<<endl;
         cout<<"-----------------------------------------------------------------"<<endl;
 
