@@ -9,9 +9,11 @@ __global__ void JacobiOperation(const int dim, const T* __restrict__ matrix, con
 	if(index > dim)
         return;
         
-    for(int i = 0; i < dim; i++) 
-        if(i != index) 
-            result[index] += matrix[index + (i*dim)] * vectorX[i];
+    for(int i = 0; i < dim; i++) {
+        //if(i != index) 
+        int diagonal = (i != index);
+        result[index] += (matrix[index + (i * dim)] * vectorX[i]) * diagonal;
+    }
 
 	// for(int i = 0; i < dim; i++) 
 	// 	if(i != index) 
